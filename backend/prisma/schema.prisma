@@ -1,0 +1,213 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ AUTH (shared) ============
+
+enum UserRole {
+  admin
+  user
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(user)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  pricingUploads     PricingUploadHistory[]
+  gpsUploads         SalesGpsUploadHistory[]
+  pricingSearchLogs  PricingSearchLog[]
+  subModelAssignments GpsMaterialNoSubModelMap[]
+
+  @@map("users")
+}
+
+// ============ MODULE 1: SMART PARTS PRICING ASSISTANT ============
+
+enum MaterialStatus {
+  active
+  inactive
+}
+
+enum MaterialCategory {
+  Lubricant
+  Consumable
+  Spare_Part
+  Undercarriage
+  Attachment
+}
+
+enum Plant {
+  Jakarta
+  Surabaya
+  Balikpapan
+}
+
+model PricingUploadHistory {
+  id              Int      @id @default(autoincrement())
+  filename        String
+  uploadedBy      Int      @map("uploaded_by")
+  uploader        User     @relation(fields: [uploadedBy], references: [id])
+  uploadDate      DateTime @default(now()) @map("upload_date")
+  version         Int
+  totalRecords    Int      @map("total_records")
+  successCount    Int      @map("success_count")
+  failedCount     Int      @map("failed_count")
+  errorLog        Json?    @map("error_log")
+  isActiveVersion Boolean  @default(true) @map("is_active_version")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  records PricingMaster[]
+
+  @@map("pricing_upload_history")
+}
+
+model PricingMaster {
+  id              Int              @id @default(autoincrement())
+  materialNumber  String           @map("material_number")
+  description     String?
+  price           Decimal          @db.Decimal(14, 2)
+  discount        Decimal?         @db.Decimal(14, 2)
+  netPrice        Decimal?         @map("net_price") @db.Decimal(14, 2)
+  currency        String           @default("IDR")
+  status          MaterialStatus    @default(active)
+  category        MaterialCategory?
+  plant           Plant?
+  stock           Int?
+  effectiveDate   DateTime?        @map("effective_date")
+  uploadVersionId Int              @map("upload_version_id")
+  uploadVersion   PricingUploadHistory @relation(fields: [uploadVersionId], references: [id])
+  createdAt       DateTime         @default(now()) @map("created_at")
+
+  @@index([materialNumber])
+  @@index([uploadVersionId])
+  @@map("pricing_master")
+}
+
+model PricingColumnConfig {
+  id           Int     @id @default(autoincrement())
+  columnKey    String  @unique @map("column_key")
+  displayLabel String  @map("display_label")
+  isVisible    Boolean @default(true) @map("is_visible")
+  sortOrder    Int     @map("sort_order")
+
+  @@map("pricing_column_config")
+}
+
+model PricingSearchLog {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id")
+  user            User     @relation(fields: [userId], references: [id])
+  searchedCount   Int      @map("searched_count")
+  responseTimeMs  Int      @map("response_time_ms")
+  searchedAt      DateTime @default(now()) @map("searched_at")
+
+  @@map("pricing_search_log")
+}
+
+// ============ MODULE 2: SALES GPS ============
+
+enum MarginCategory {
+  not_achieved
+  underperforming
+  achieved
+  unclassified
+}
+
+model GpsModel {
+  id         Int      @id @default(autoincrement())
+  codePrefix String   @unique @map("code_prefix")
+  name       String
+  isActive   Boolean  @default(true) @map("is_active")
+
+  subModels    GpsSubModel[]
+  transactions SalesGpsTransaction[]
+
+  @@map("gps_model")
+}
+
+model GpsSubModel {
+  id              Int      @id @default(autoincrement())
+  modelId         Int      @map("model_id")
+  model           GpsModel @relation(fields: [modelId], references: [id])
+  name            String
+  targetGpPercent Decimal  @map("target_gp_percent") @db.Decimal(5, 2)
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  materialMappings GpsMaterialNoSubModelMap[]
+  transactions     SalesGpsTransaction[]
+
+  @@map("gps_sub_model")
+}
+
+model GpsMaterialNoSubModelMap {
+  materialNo  String      @id @map("material_no")
+  subModelId  Int         @map("sub_model_id")
+  subModel    GpsSubModel @relation(fields: [subModelId], references: [id])
+  assignedBy  Int         @map("assigned_by")
+  assignedByUser User     @relation(fields: [assignedBy], references: [id])
+  assignedAt  DateTime    @default(now()) @map("assigned_at")
+
+  @@map("gps_materialno_submodel_map")
+}
+
+model SalesGpsUploadHistory {
+  id              Int      @id @default(autoincrement())
+  filename        String
+  uploadedBy      Int      @map("uploaded_by")
+  uploader        User     @relation(fields: [uploadedBy], references: [id])
+  uploadDate      DateTime @default(now()) @map("upload_date")
+  version         Int
+  totalRecords    Int      @map("total_records")
+  successCount    Int      @map("success_count")
+  failedCount     Int      @map("failed_count")
+  errorLog        Json?    @map("error_log")
+  isActiveVersion Boolean  @default(true) @map("is_active_version")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  transactions SalesGpsTransaction[]
+
+  @@map("sales_gps_upload_history")
+}
+
+model SalesGpsTransaction {
+  id              Int             @id @default(autoincrement())
+  invoiceDate     DateTime        @map("invoice_date")
+  salesName       String          @map("sales_name")
+  customerName    String?         @map("customer_name")
+  materialNo      String?         @map("material_no")
+  materialDescription String?    @map("material_description")
+  serialNo        String?         @map("serial_no")
+  salesArea       String?         @map("sales_area")
+  revenue         Decimal?        @db.Decimal(16, 2)
+  cost            Decimal?        @db.Decimal(16, 2)
+  gp              Decimal?        @db.Decimal(16, 2)
+  gpPercent       Decimal?        @map("gp_percent") @db.Decimal(6, 2)
+  marginRemark    String?         @map("margin_remark")
+  modelId         Int?            @map("model_id")
+  model           GpsModel?       @relation(fields: [modelId], references: [id])
+  subModelId      Int?            @map("sub_model_id")
+  subModel        GpsSubModel?    @relation(fields: [subModelId], references: [id])
+  marginCategory  MarginCategory  @default(unclassified) @map("margin_category")
+  uploadVersionId Int             @map("upload_version_id")
+  uploadVersion   SalesGpsUploadHistory @relation(fields: [uploadVersionId], references: [id])
+  createdAt       DateTime        @default(now()) @map("created_at")
+
+  @@index([materialNo])
+  @@index([uploadVersionId])
+  @@index([invoiceDate])
+  @@map("sales_gps_transaction")
+}
