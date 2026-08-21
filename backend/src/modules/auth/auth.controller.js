@@ -3,12 +3,13 @@ const authService = require('./auth.service');
 const COOKIE_MAX_AGE_MS = 8 * 60 * 60 * 1000; // 8 hours
 const isProd = process.env.NODE_ENV === 'production';
 
-// Cross-origin deploy (frontend & backend on different Vercel domains) needs
-// SameSite=None + Secure for the browser to send the cookie at all.
+// Requests always go through the frontend's own-origin rewrite proxy
+// (see frontend/next.config.js), so the cookie stays strictly first-party —
+// plain Lax is correct and safest here, no cross-site SameSite=None needed.
 const cookieOptions = {
   httpOnly: true,
   secure: isProd,
-  sameSite: isProd ? 'none' : 'lax',
+  sameSite: 'lax',
 };
 
 async function login(req, res, next) {

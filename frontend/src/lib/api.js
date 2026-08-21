@@ -1,4 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+// Relative paths only — requests go through the Next.js rewrite proxy
+// (see next.config.js) so the browser always talks to its own origin,
+// keeping the auth cookie strictly first-party.
+const API_URL = '';
 
 async function apiFetch(path, options = {}) {
   const res = await fetch(`${API_URL}${path}`, {
