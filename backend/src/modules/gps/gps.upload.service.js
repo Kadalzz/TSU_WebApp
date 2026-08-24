@@ -79,7 +79,6 @@ async function loadWorkbookRows(buffer, originalName) {
   const rows = [];
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return;
-    if (row.values.length <= 1) return;
 
     const getCell = (field) => {
       const idx = columnIndexMap[field];
@@ -87,8 +86,7 @@ async function loadWorkbookRows(buffer, originalName) {
       return row.getCell(idx).value;
     };
 
-    rows.push({
-      rowNumber,
+    const rawRow = {
       invoiceDate: getCell('invoiceDate'),
       salesName: getCell('salesName'),
       customerName: getCell('customerName'),
@@ -99,7 +97,17 @@ async function loadWorkbookRows(buffer, originalName) {
       revenue: getCell('revenue'),
       cost: getCell('cost'),
       marginRemark: getCell('marginRemark'),
-    });
+    };
+
+    // Same rationale as the pricing parser: a row can carry leftover cell
+    // formatting without any real value, so only skip rows where none of
+    // our recognized columns actually have a value.
+    const hasAnyValue = Object.values(rawRow).some(
+      (v) => v !== null && v !== undefined && String(v).trim() !== ''
+    );
+    if (!hasAnyValue) return;
+
+    rows.push({ rowNumber, ...rawRow });
   });
 
   return rows;

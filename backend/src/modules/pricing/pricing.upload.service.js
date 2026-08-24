@@ -61,7 +61,6 @@ async function loadWorkbookRows(buffer, originalName) {
   const rows = [];
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return;
-    if (row.values.length <= 1) return;
 
     const getCell = (field) => {
       const idx = columnIndexMap[field];
@@ -69,8 +68,7 @@ async function loadWorkbookRows(buffer, originalName) {
       return row.getCell(idx).value;
     };
 
-    rows.push({
-      rowNumber,
+    const rawRow = {
       materialNumber: getCell('materialNumber'),
       description: getCell('description'),
       valuationType: getCell('valuationType'),
@@ -82,7 +80,19 @@ async function loadWorkbookRows(buffer, originalName) {
       remarksForMaterial: getCell('remarksForMaterial'),
       replacementPartNo: getCell('replacementPartNo'),
       valTypeForReplacementPartNo: getCell('valTypeForReplacementPartNo'),
-    });
+    };
+
+    // A row can carry leftover cell formatting (borders/fill from a table
+    // style applied to a wide blank range) without any real value in it —
+    // row.values.length alone can't tell a "styled but empty" row from a
+    // real one, so only skip rows where NONE of our recognized columns
+    // actually have a value.
+    const hasAnyValue = Object.values(rawRow).some(
+      (v) => v !== null && v !== undefined && String(v).trim() !== ''
+    );
+    if (!hasAnyValue) return;
+
+    rows.push({ rowNumber, ...rawRow });
   });
 
   return rows;
