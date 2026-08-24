@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
-import SalesRankingChart, { MARGIN_CATEGORY_COLORS, MARGIN_CATEGORY_LABELS } from '@/components/gps/SalesRankingChart';
+import SalesRankingChart, {
+  MARGIN_CATEGORY_COLORS,
+  MARGIN_CATEGORY_LABELS,
+  MARGIN_CATEGORY_TEXT_COLOR,
+} from '@/components/gps/SalesRankingChart';
 import {
   getGpsFilterOptions,
   getGpsDashboardSummary,
@@ -305,8 +309,11 @@ function GpsPageContent({ user }) {
                   <td className="px-3 py-2">{formatPercentOrDash(t.gpPercent)}</td>
                   <td className="px-3 py-2">
                     <span
-                      className="rounded px-2 py-0.5 text-xs text-white"
-                      style={{ backgroundColor: MARGIN_CATEGORY_COLORS[t.marginCategory] }}
+                      className="rounded px-2 py-0.5 text-xs"
+                      style={{
+                        backgroundColor: MARGIN_CATEGORY_COLORS[t.marginCategory],
+                        color: MARGIN_CATEGORY_TEXT_COLOR[t.marginCategory],
+                      }}
                     >
                       {MARGIN_CATEGORY_LABELS[t.marginCategory]}
                     </span>
