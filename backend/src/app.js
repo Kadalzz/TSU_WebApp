@@ -6,6 +6,7 @@ const authRoutes = require('./modules/auth/auth.routes');
 const pricingRoutes = require('./modules/pricing/pricing.routes');
 const gpsRoutes = require('./modules/gps/gps.routes');
 const usersRoutes = require('./modules/users/users.routes');
+const settingsRoutes = require('./modules/settings/settings.routes');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 const { loginLimiter } = require('./middleware/rateLimit');
 
@@ -22,6 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/pricing', pricingRoutes);
 app.use('/api/gps', gpsRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/settings', settingsRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -37,6 +37,14 @@ function AdminHubContent() {
           <h2 className="mb-2 text-lg font-semibold">Kelola User</h2>
           <p className="text-sm text-slate-500">Buat akun, atur role Admin/User, aktif/nonaktifkan.</p>
         </Link>
+
+        <Link
+          href="/admin/settings"
+          className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+        >
+          <h2 className="mb-2 text-lg font-semibold">Settings</h2>
+          <p className="text-sm text-slate-500">Nyalakan/matikan fitur export untuk role User.</p>
+        </Link>
       </div>
     </div>
   );

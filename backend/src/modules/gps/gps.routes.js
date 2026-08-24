@@ -2,6 +2,7 @@ const express = require('express');
 const controller = require('./gps.controller');
 const { requireAuth } = require('../../middleware/auth');
 const { requireRole } = require('../../middleware/roleGuard');
+const { requireFeatureEnabled } = require('../../middleware/featureFlag');
 
 const router = express.Router();
 
@@ -13,8 +14,8 @@ router.get('/dashboard/summary', controller.getDashboardSummary);
 router.get('/dashboard/ranking', controller.getDashboardRanking);
 router.get('/dashboard/kpi', controller.getDashboardKpi);
 router.get('/transactions', controller.getTransactions);
-router.get('/transactions/export', controller.exportTransactions);
-router.get('/dashboard/ranking/export', controller.exportRanking);
+router.get('/transactions/export', requireFeatureEnabled('gps_export'), controller.exportTransactions);
+router.get('/dashboard/ranking/export', requireFeatureEnabled('gps_export'), controller.exportRanking);
 router.get('/models', controller.getModels);
 
 // Admin only

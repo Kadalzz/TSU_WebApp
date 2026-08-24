@@ -16,6 +16,18 @@ enum UserRole {
   user
 }
 
+// ============ SETTINGS (shared) ============
+
+model FeatureFlag {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  label     String
+  enabled   Boolean  @default(true)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("feature_flag")
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   name         String

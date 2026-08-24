@@ -8,6 +8,7 @@ import {
   exportPricing,
   getPricingColumns,
   getPricingKpi,
+  getFeatureFlags,
 } from '@/lib/api';
 
 function formatCellValue(columnKey, value) {
@@ -22,7 +23,7 @@ function formatCellValue(columnKey, value) {
   }
 }
 
-function PricingPageContent() {
+function PricingPageContent({ user }) {
   const [rawText, setRawText] = useState('');
   const [columns, setColumns] = useState([]);
   const [results, setResults] = useState([]);
@@ -31,13 +32,22 @@ function PricingPageContent() {
   const [kpi, setKpi] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [exportEnabled, setExportEnabled] = useState(true);
 
   useEffect(() => {
     getPricingColumns()
       .then((data) => setColumns(data.columns.filter((c) => c.isVisible).sort((a, b) => a.sortOrder - b.sortOrder)))
       .catch(() => {});
     getPricingKpi().then(setKpi).catch(() => {});
+    getFeatureFlags()
+      .then((data) => {
+        const flag = data.flags.find((f) => f.key === 'pricing_export');
+        setExportEnabled(flag ? flag.enabled : true);
+      })
+      .catch(() => {});
   }, []);
+
+  const canExport = user.role === 'admin' || exportEnabled;
 
   const materialNumbers = useMemo(
     () => [
@@ -111,13 +121,15 @@ function PricingPageContent() {
         >
           {loading ? 'Mencari...' : `GET PRICE (${materialNumbers.length})`}
         </button>
-        <button
-          onClick={handleExport}
-          disabled={materialNumbers.length === 0}
-          className="rounded border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 disabled:opacity-50"
-        >
-          EXPORT EXCEL
-        </button>
+        {canExport && (
+          <button
+            onClick={handleExport}
+            disabled={materialNumbers.length === 0}
+            className="rounded border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 disabled:opacity-50"
+          >
+            EXPORT EXCEL
+          </button>
+        )}
         {meta && (
           <span className="text-xs text-slate-500">
             {meta.totalFound}/{meta.totalRequested} ditemukan &middot; {meta.responseTimeMs}ms
@@ -183,5 +195,5 @@ function KpiCard({ label, value }) {
 }
 
 export default function PricingPage() {
-  return <AuthGuard>{() => <PricingPageContent />}</AuthGuard>;
+  return <AuthGuard>{(user) => <PricingPageContent user={user} />}</AuthGuard>;
 }

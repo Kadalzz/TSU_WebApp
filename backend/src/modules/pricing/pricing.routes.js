@@ -2,6 +2,7 @@ const express = require('express');
 const controller = require('./pricing.controller');
 const { requireAuth } = require('../../middleware/auth');
 const { requireRole } = require('../../middleware/roleGuard');
+const { requireFeatureEnabled } = require('../../middleware/featureFlag');
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ router.get('/columns', controller.getColumns);
 router.put('/columns', requireRole('admin'), controller.updateColumns);
 
 router.post('/search', controller.search);
-router.post('/export', controller.exportResults);
+router.post('/export', requireFeatureEnabled('pricing_export'), controller.exportResults);
 router.get('/kpi', controller.getKpi);
 
 router.get('/uploads', requireRole('admin'), controller.listUploads);

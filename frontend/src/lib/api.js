@@ -179,3 +179,10 @@ export const createUserAccount = (payload) =>
 
 export const updateUserAccount = (id, payload) =>
   apiFetch(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+
+// ---------- Settings / Feature Flags ----------
+
+export const getFeatureFlags = () => apiFetch('/api/settings/feature-flags');
+
+export const updateFeatureFlag = (key, enabled) =>
+  apiFetch(`/api/settings/feature-flags/${key}`, { method: 'PATCH', body: JSON.stringify({ enabled }) });

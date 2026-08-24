@@ -63,6 +63,20 @@ async function main() {
     });
   }
   console.log('Seeded pricing_column_config (11 rows)');
+
+  const featureFlags = [
+    { key: 'pricing_export', label: 'Export Excel — Pricing Assistant' },
+    { key: 'gps_export', label: 'Export Excel & PDF — Sales GPS' },
+  ];
+
+  for (const flag of featureFlags) {
+    await prisma.featureFlag.upsert({
+      where: { key: flag.key },
+      update: { label: flag.label },
+      create: { ...flag, enabled: true },
+    });
+  }
+  console.log('Seeded feature_flag (2 rows)');
 }
 
 main()

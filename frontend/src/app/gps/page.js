@@ -12,6 +12,7 @@ import {
   getGpsTransactions,
   exportGpsTransactions,
   exportGpsRanking,
+  getFeatureFlags,
 } from '@/lib/api';
 
 const MONTH_NAMES = [
@@ -39,7 +40,7 @@ function formatPercentOrDash(value) {
   return value === null || value === undefined ? '-' : `${Number(value).toFixed(2)}%`;
 }
 
-function GpsPageContent() {
+function GpsPageContent({ user }) {
   const [filterOptions, setFilterOptions] = useState({ salesNames: [], customers: [], salesAreas: [], models: [] });
   const [filters, setFilters] = useState({ month: '', salesName: '', customer: '', modelId: '', subModelId: '', salesArea: '' });
   const [summary, setSummary] = useState([]);
@@ -49,6 +50,7 @@ function GpsPageContent() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [exportEnabled, setExportEnabled] = useState(true);
 
   const monthOptions = useMemo(() => currentYearMonthOptions(), []);
 
@@ -60,7 +62,15 @@ function GpsPageContent() {
 
   useEffect(() => {
     getGpsFilterOptions().then(setFilterOptions).catch(() => {});
+    getFeatureFlags()
+      .then((data) => {
+        const flag = data.flags.find((f) => f.key === 'gps_export');
+        setExportEnabled(flag ? flag.enabled : true);
+      })
+      .catch(() => {});
   }, []);
+
+  const canExport = user.role === 'admin' || exportEnabled;
 
   async function refreshDashboard() {
     setLoading(true);
@@ -107,9 +117,11 @@ function GpsPageContent() {
           <p className="text-sm text-slate-500">Gross Profit performance dashboard</p>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={() => window.print()} className="text-sm text-slate-500 underline underline-offset-2">
-            Export PDF
-          </button>
+          {canExport && (
+            <button onClick={() => window.print()} className="text-sm text-slate-500 underline underline-offset-2">
+              Export PDF
+            </button>
+          )}
           <Link href="/" className="text-sm text-slate-500 underline underline-offset-2">
             &larr; Kembali
           </Link>
@@ -229,12 +241,14 @@ function GpsPageContent() {
       <section className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-3 flex items-center justify-between no-print">
           <h2 className="font-medium">Sales Ranking</h2>
-          <button
-            onClick={() => exportGpsRanking(filters)}
-            className="rounded border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100"
-          >
-            Export Excel
-          </button>
+          {canExport && (
+            <button
+              onClick={() => exportGpsRanking(filters)}
+              className="rounded border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100"
+            >
+              Export Excel
+            </button>
+          )}
         </div>
         <SalesRankingChart data={ranking} />
       </section>
@@ -251,12 +265,14 @@ function GpsPageContent() {
               onChange={(e) => setSearch(e.target.value)}
               className="rounded border border-slate-300 px-3 py-1.5 text-sm"
             />
-            <button
-              onClick={() => exportGpsTransactions({ ...filters, search: search || undefined })}
-              className="rounded border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100"
-            >
-              Export Excel
-            </button>
+            {canExport && (
+              <button
+                onClick={() => exportGpsTransactions({ ...filters, search: search || undefined })}
+                className="rounded border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100"
+              >
+                Export Excel
+              </button>
+            )}
           </div>
         </div>
         <div className="max-h-[480px] overflow-auto">
@@ -322,5 +338,5 @@ function KpiCard({ label, value }) {
 }
 
 export default function GpsPage() {
-  return <AuthGuard>{() => <GpsPageContent />}</AuthGuard>;
+  return <AuthGuard>{(user) => <GpsPageContent user={user} />}</AuthGuard>;
 }
