@@ -4,17 +4,17 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cart
 
 export const MARGIN_CATEGORY_COLORS = {
   not_achieved: '#dc2626',
-  underperforming: '#eab308',
-  achieved: '#65a30d',
+  underperforming: '#FFFF00',
+  achieved: '#00FF00',
   unclassified: '#475569',
 };
 
-// Text color to overlay on each fill above — the yellow underperforming fill
-// is too light for white text to stay readable, so it gets dark text instead.
+// Text color to overlay on each fill above — the yellow/lime fills are too
+// light for white text to stay readable, so they get dark text instead.
 export const MARGIN_CATEGORY_TEXT_COLOR = {
   not_achieved: '#ffffff',
   underperforming: '#1c1917',
-  achieved: '#ffffff',
+  achieved: '#1c1917',
   unclassified: '#ffffff',
 };
 
