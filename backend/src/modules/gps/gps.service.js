@@ -440,10 +440,10 @@ async function buildTransactionExportWorkbook(transactions) {
     { header: 'Sales Area', key: 'salesArea', width: 14 },
     { header: 'Model', key: 'model', width: 18 },
     { header: 'Sub Model', key: 'subModel', width: 18 },
-    { header: 'Revenue', key: 'revenue', width: 14 },
+    { header: 'Actual Revenue', key: 'revenue', width: 16 },
     { header: 'Cost', key: 'cost', width: 14 },
     { header: 'GP', key: 'gp', width: 14 },
-    { header: 'GP%', key: 'gpPercent', width: 10 },
+    { header: 'Actual Gross Profit%', key: 'gpPercent', width: 18 },
     { header: 'Margin Category', key: 'marginCategory', width: 18 },
     { header: 'Remarks (source)', key: 'marginRemark', width: 24 },
   ];

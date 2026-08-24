@@ -289,9 +289,8 @@ function GpsPageContent({ user }) {
                 <th className="px-3 py-2 text-left font-medium">Material No</th>
                 <th className="px-3 py-2 text-left font-medium">Model</th>
                 <th className="px-3 py-2 text-left font-medium">Sales Area</th>
-                <th className="px-3 py-2 text-left font-medium">Revenue</th>
-                <th className="px-3 py-2 text-left font-medium">GP</th>
-                <th className="px-3 py-2 text-left font-medium">GP%</th>
+                <th className="px-3 py-2 text-left font-medium">Actual Revenue</th>
+                <th className="px-3 py-2 text-left font-medium">Actual Gross Profit%</th>
                 <th className="px-3 py-2 text-left font-medium">Kategori</th>
               </tr>
             </thead>
@@ -305,7 +304,6 @@ function GpsPageContent({ user }) {
                   <td className="px-3 py-2">{t.model?.name || '-'}</td>
                   <td className="px-3 py-2">{t.salesArea || '-'}</td>
                   <td className="px-3 py-2">{formatCurrencyOrDash(t.revenue)}</td>
-                  <td className="px-3 py-2">{formatCurrencyOrDash(t.gp)}</td>
                   <td className="px-3 py-2">{formatPercentOrDash(t.gpPercent)}</td>
                   <td className="px-3 py-2">
                     <span
@@ -322,7 +320,7 @@ function GpsPageContent({ user }) {
               ))}
               {transactions.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-3 py-6 text-center text-slate-400">
+                  <td colSpan={9} className="px-3 py-6 text-center text-slate-400">
                     Tidak ada transaksi
                   </td>
                 </tr>

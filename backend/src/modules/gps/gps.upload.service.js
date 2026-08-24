@@ -15,7 +15,14 @@ const HEADER_MAP = {
   'serial no': 'serialNo',
   'serial number': 'serialNo',
   revenue: 'revenue',
+  'actual revenue': 'revenue',
   cost: 'cost',
+  'actual gross profit %': 'actualGpPercent',
+  'actual gross profit%': 'actualGpPercent',
+  'actual gp %': 'actualGpPercent',
+  'actual gp%': 'actualGpPercent',
+  'gross profit %': 'actualGpPercent',
+  'gross profit%': 'actualGpPercent',
   'remarks bottom margin': 'marginRemark',
   'sales area': 'salesArea',
 };
@@ -96,6 +103,7 @@ async function loadWorkbookRows(buffer, originalName) {
       salesArea: getCell('salesArea'),
       revenue: getCell('revenue'),
       cost: getCell('cost'),
+      actualGpPercent: getCell('actualGpPercent'),
       marginRemark: getCell('marginRemark'),
     };
 
@@ -117,6 +125,16 @@ function parseNumber(value) {
   if (value === null || value === undefined || value === '') return null;
   const num = Number(value);
   return Number.isFinite(num) ? num : NaN;
+}
+
+function normalizePercent(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const num = Number(value);
+  if (!Number.isFinite(num)) return NaN;
+  // A cell formatted as "Percentage" in Excel comes through as a fraction
+  // (15.5% -> 0.155); a plain number column has the percent value directly
+  // (15.5% -> 15.5). Values within [-1, 1] are assumed to be the fraction form.
+  return Math.abs(num) <= 1 ? num * 100 : num;
 }
 
 function parseDate(value) {
@@ -158,9 +176,22 @@ function validateRow(raw) {
   const salesArea = raw.salesArea != null ? String(raw.salesArea).trim() : null;
   const marginRemark = raw.marginRemark != null ? String(raw.marginRemark).trim() : null;
 
+  let actualGpPercent = null;
+  if (raw.actualGpPercent != null && raw.actualGpPercent !== '') {
+    actualGpPercent = normalizePercent(raw.actualGpPercent);
+    if (Number.isNaN(actualGpPercent)) errors.push('Actual Gross Profit% harus berupa angka');
+  }
+
   let gp = null;
   let gpPercent = null;
-  if (revenue !== null && cost !== null && !Number.isNaN(revenue) && !Number.isNaN(cost)) {
+  if (actualGpPercent !== null && !Number.isNaN(actualGpPercent)) {
+    // File already provides the computed GP% directly — trust it over
+    // deriving from Revenue/Cost (which may not even be present).
+    gpPercent = actualGpPercent;
+    if (revenue !== null && !Number.isNaN(revenue)) {
+      gp = (revenue * gpPercent) / 100;
+    }
+  } else if (revenue !== null && cost !== null && !Number.isNaN(revenue) && !Number.isNaN(cost)) {
     gp = revenue - cost;
     gpPercent = revenue !== 0 ? (gp / revenue) * 100 : gp === 0 ? 0 : null;
   }
