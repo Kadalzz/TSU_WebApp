@@ -287,6 +287,7 @@ function GpsPageContent({ user }) {
                 <th className="px-3 py-2 text-left font-medium">Sales</th>
                 <th className="px-3 py-2 text-left font-medium">Customer</th>
                 <th className="px-3 py-2 text-left font-medium">Material No</th>
+                <th className="px-3 py-2 text-left font-medium">Serial Number</th>
                 <th className="px-3 py-2 text-left font-medium">Model</th>
                 <th className="px-3 py-2 text-left font-medium">Sales Area</th>
                 <th className="px-3 py-2 text-left font-medium">Actual Revenue</th>
@@ -301,6 +302,7 @@ function GpsPageContent({ user }) {
                   <td className="px-3 py-2">{t.salesName}</td>
                   <td className="px-3 py-2">{t.customerName || '-'}</td>
                   <td className="px-3 py-2">{t.materialNo || '-'}</td>
+                  <td className="px-3 py-2">{t.serialNo || '-'}</td>
                   <td className="px-3 py-2">{t.model?.name || '-'}</td>
                   <td className="px-3 py-2">{t.salesArea || '-'}</td>
                   <td className="px-3 py-2">{formatCurrencyOrDash(t.revenue)}</td>
@@ -320,7 +322,7 @@ function GpsPageContent({ user }) {
               ))}
               {transactions.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-3 py-6 text-center text-slate-400">
+                  <td colSpan={10} className="px-3 py-6 text-center text-slate-400">
                     Tidak ada transaksi
                   </td>
                 </tr>
