@@ -118,15 +118,19 @@ async function searchMaterials({ materialNumbers, userId }) {
   const start = Date.now();
   const cleaned = [...new Set(materialNumbers.map((m) => String(m).trim()).filter(Boolean))];
 
+  // Prefix match (case-insensitive): searching a bare code like "6395271"
+  // must also surface variants like "6395271:SE" / "6395271:AA" that share
+  // that base number but differ in suffix/case.
   const where = {
-    materialNumber: { in: cleaned },
     uploadVersion: { isActiveVersion: true },
+    OR: cleaned.map((code) => ({ materialNumber: { startsWith: code, mode: 'insensitive' } })),
   };
 
   const results = await prisma.pricingMaster.findMany({ where, orderBy: { materialNumber: 'asc' } });
 
-  const foundNumbers = new Set(results.map((r) => r.materialNumber));
-  const notFound = cleaned.filter((m) => !foundNumbers.has(m));
+  const notFound = cleaned.filter(
+    (code) => !results.some((r) => r.materialNumber.toLowerCase().startsWith(code.toLowerCase()))
+  );
 
   const responseTimeMs = Date.now() - start;
 
