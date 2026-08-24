@@ -476,7 +476,7 @@ async function buildRankingExportWorkbook(ranking) {
   const sheet = workbook.addWorksheet('Sales Ranking');
   sheet.columns = [
     { header: 'Sales Name', key: 'salesName', width: 24 },
-    { header: 'Not Achieved', key: 'not_achieved', width: 14 },
+    { header: 'Loss GP', key: 'not_achieved', width: 14 },
     { header: 'Underperforming', key: 'underperforming', width: 16 },
     { header: 'Achieved', key: 'achieved', width: 12 },
     { header: 'Unclassified', key: 'unclassified', width: 14 },

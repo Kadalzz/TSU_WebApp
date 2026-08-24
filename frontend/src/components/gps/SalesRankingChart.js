@@ -4,13 +4,13 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cart
 
 export const MARGIN_CATEGORY_COLORS = {
   not_achieved: '#dc2626',
-  underperforming: '#15803d',
-  achieved: '#b45309',
-  unclassified: '#64748b',
+  underperforming: '#ca8a04',
+  achieved: '#0d9488',
+  unclassified: '#475569',
 };
 
 export const MARGIN_CATEGORY_LABELS = {
-  not_achieved: 'Not Achieved',
+  not_achieved: 'Loss GP',
   underperforming: 'Underperforming',
   achieved: 'Achieved',
   unclassified: 'Unclassified',
