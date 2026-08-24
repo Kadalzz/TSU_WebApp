@@ -85,12 +85,6 @@ export const searchPricing = (payload) =>
 export const exportPricing = (payload) =>
   apiDownload('/api/pricing/export', { method: 'POST', body: JSON.stringify(payload) });
 
-export const parseMaterialListFile = (file) => {
-  const formData = new FormData();
-  formData.append('file', file);
-  return apiUpload('/api/pricing/parse-material-list', formData);
-};
-
 // ---------- Pricing: columns & KPI ----------
 
 export const getPricingColumns = () => apiFetch('/api/pricing/columns');

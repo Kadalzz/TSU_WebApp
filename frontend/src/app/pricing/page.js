@@ -6,7 +6,6 @@ import AuthGuard from '@/components/AuthGuard';
 import {
   searchPricing,
   exportPricing,
-  parseMaterialListFile,
   getPricingColumns,
   getPricingKpi,
 } from '@/lib/api';
@@ -35,8 +34,6 @@ function formatCellValue(columnKey, value) {
 
 function PricingPageContent() {
   const [rawText, setRawText] = useState('');
-  const [fileMaterialNumbers, setFileMaterialNumbers] = useState([]);
-  const [fileName, setFileName] = useState('');
   const [filters, setFilters] = useState({ status: '', category: '', plant: '' });
   const [columns, setColumns] = useState([]);
   const [results, setResults] = useState([]);
@@ -53,36 +50,21 @@ function PricingPageContent() {
     getPricingKpi().then(setKpi).catch(() => {});
   }, []);
 
-  const pastedMaterialNumbers = useMemo(
-    () =>
-      rawText
-        .split('\n')
-        .map((s) => s.trim())
-        .filter(Boolean),
+  const materialNumbers = useMemo(
+    () => [
+      ...new Set(
+        rawText
+          .split('\n')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      ),
+    ],
     [rawText]
   );
 
-  const materialNumbers = useMemo(
-    () => [...new Set([...pastedMaterialNumbers, ...fileMaterialNumbers])],
-    [pastedMaterialNumbers, fileMaterialNumbers]
-  );
-
-  async function handleFileChange(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setFileName(file.name);
-    setError('');
-    try {
-      const data = await parseMaterialListFile(file);
-      setFileMaterialNumbers(data.materialNumbers);
-    } catch (err) {
-      setError(err.message);
-    }
-  }
-
   async function handleGetPrice() {
     if (materialNumbers.length === 0) {
-      setError('Masukkan minimal 1 material code (paste atau upload file)');
+      setError('Masukkan minimal 1 material code');
       return;
     }
     setError('');
@@ -122,63 +104,47 @@ function PricingPageContent() {
         </Link>
       </div>
 
-      <div className="mb-6 grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Paste Material Code (satu per baris)</label>
-          <textarea
-            rows={8}
-            value={rawText}
-            onChange={(e) => setRawText(e.target.value)}
-            placeholder={'MAT-001\nMAT-002\nMAT-003'}
-            className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Atau Upload File Excel/CSV</label>
-          <input
-            type="file"
-            accept=".xlsx,.csv"
-            onChange={handleFileChange}
-            className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
-          />
-          {fileName && (
-            <p className="mt-1 text-xs text-slate-500">
-              {fileName} — {fileMaterialNumbers.length} material code terbaca
-            </p>
-          )}
+      <div className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <label className="mb-1 block text-sm font-medium">Paste Material Code (satu per baris)</label>
+        <textarea
+          rows={8}
+          value={rawText}
+          onChange={(e) => setRawText(e.target.value)}
+          placeholder={'MAT-001\nMAT-002\nMAT-003'}
+          className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+        />
 
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            <select
-              value={filters.status}
-              onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-              className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-            >
-              <option value="">All Status</option>
-              {STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-            <select
-              value={filters.category}
-              onChange={(e) => setFilters((f) => ({ ...f, category: e.target.value }))}
-              className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-            >
-              <option value="">All Category</option>
-              {CATEGORY_OPTIONS.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            <select
-              value={filters.plant}
-              onChange={(e) => setFilters((f) => ({ ...f, plant: e.target.value }))}
-              className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-            >
-              <option value="">All Plant</option>
-              {PLANT_OPTIONS.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <select
+            value={filters.status}
+            onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
+            className="rounded border border-slate-300 px-2 py-1.5 text-sm"
+          >
+            <option value="">All Status</option>
+            {STATUS_OPTIONS.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          <select
+            value={filters.category}
+            onChange={(e) => setFilters((f) => ({ ...f, category: e.target.value }))}
+            className="rounded border border-slate-300 px-2 py-1.5 text-sm"
+          >
+            <option value="">All Category</option>
+            {CATEGORY_OPTIONS.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          <select
+            value={filters.plant}
+            onChange={(e) => setFilters((f) => ({ ...f, plant: e.target.value }))}
+            className="rounded border border-slate-300 px-2 py-1.5 text-sm"
+          >
+            <option value="">All Plant</option>
+            {PLANT_OPTIONS.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
         </div>
       </div>
 
