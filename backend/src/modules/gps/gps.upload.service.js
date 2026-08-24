@@ -19,6 +19,8 @@ const HEADER_MAP = {
   cost: 'cost',
   'actual gross profit %': 'actualGpPercent',
   'actual gross profit%': 'actualGpPercent',
+  'actual gross profit percentage %': 'actualGpPercent',
+  'actual gross profit percentage': 'actualGpPercent',
   'actual gp %': 'actualGpPercent',
   'actual gp%': 'actualGpPercent',
   'gross profit %': 'actualGpPercent',

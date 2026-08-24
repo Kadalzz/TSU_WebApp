@@ -202,13 +202,11 @@ function GpsPageContent({ user }) {
 
       {/* KPI cards */}
       {kpi && (
-        <div className="mb-6 grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard label="Total Revenue" value={formatCurrency(kpi.totalRevenue)} />
-          <KpiCard label="Total GP" value={formatCurrency(kpi.totalGp)} />
           <KpiCard label="Average Margin" value={`${kpi.averageMarginPercent}%`} />
           <KpiCard label="Total Transaction" value={kpi.totalTransaction} />
           <KpiCard label="Best Sales" value={kpi.bestSales || '-'} />
-          <KpiCard label="Highest GP" value={formatCurrency(kpi.highestGp)} />
         </div>
       )}
 
