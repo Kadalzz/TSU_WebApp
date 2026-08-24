@@ -1,11 +1,6 @@
 const ExcelJS = require('exceljs');
 const prisma = require('../../config/db');
-const {
-  loadWorkbookRows,
-  validateRow,
-  normalizeCategory,
-  normalizePlant,
-} = require('./pricing.upload.service');
+const { loadWorkbookRows, validateRow } = require('./pricing.upload.service');
 
 async function processUpload(file, userId) {
   const rows = await loadWorkbookRows(file.buffer, file.originalname);
@@ -119,7 +114,7 @@ async function getErrorLogWorkbook(uploadId) {
   return workbook;
 }
 
-async function searchMaterials({ materialNumbers, status, category, plant, userId }) {
+async function searchMaterials({ materialNumbers, userId }) {
   const start = Date.now();
   const cleaned = [...new Set(materialNumbers.map((m) => String(m).trim()).filter(Boolean))];
 
@@ -127,15 +122,6 @@ async function searchMaterials({ materialNumbers, status, category, plant, userI
     materialNumber: { in: cleaned },
     uploadVersion: { isActiveVersion: true },
   };
-  if (status) where.status = String(status).toLowerCase();
-  if (category) {
-    const normalized = normalizeCategory(category) || category;
-    where.category = normalized;
-  }
-  if (plant) {
-    const normalized = normalizePlant(plant) || plant;
-    where.plant = normalized;
-  }
 
   const results = await prisma.pricingMaster.findMany({ where, orderBy: { materialNumber: 'asc' } });
 
@@ -157,32 +143,32 @@ async function buildExportWorkbook(results) {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Pricing Result');
   sheet.columns = [
-    { header: 'Material No', key: 'materialNumber', width: 20 },
-    { header: 'Description', key: 'description', width: 32 },
-    { header: 'Price', key: 'price', width: 14 },
-    { header: 'Discount', key: 'discount', width: 12 },
-    { header: 'Net Price', key: 'netPrice', width: 14 },
+    { header: 'Material Code', key: 'materialNumber', width: 20 },
+    { header: 'Material Description', key: 'description', width: 32 },
+    { header: 'Valuation Type', key: 'valuationType', width: 16 },
+    { header: 'Pricing Date', key: 'pricingDate', width: 14 },
     { header: 'Currency', key: 'currency', width: 10 },
-    { header: 'Plant', key: 'plant', width: 12 },
-    { header: 'Stock', key: 'stock', width: 10 },
-    { header: 'Status', key: 'status', width: 10 },
-    { header: 'Category', key: 'category', width: 16 },
-    { header: 'Effective Date', key: 'effectiveDate', width: 16 },
+    { header: 'New BE Code', key: 'newBeCode', width: 16 },
+    { header: 'New Commodity Code', key: 'newCommodityCode', width: 18 },
+    { header: 'Current SP', key: 'price', width: 14 },
+    { header: 'Remarks for Material', key: 'remarksForMaterial', width: 30 },
+    { header: 'Replacement Part No', key: 'replacementPartNo', width: 20 },
+    { header: 'Val Type for Replacement Part No', key: 'valTypeForReplacementPartNo', width: 26 },
   ];
 
   results.forEach((r) =>
     sheet.addRow({
       materialNumber: r.materialNumber,
       description: r.description,
-      price: r.price,
-      discount: r.discount,
-      netPrice: r.netPrice,
+      valuationType: r.valuationType,
+      pricingDate: r.pricingDate ? r.pricingDate.toISOString().slice(0, 10) : '',
       currency: r.currency,
-      plant: r.plant,
-      stock: r.stock,
-      status: r.status,
-      category: r.category ? r.category.replace('_', ' ') : '',
-      effectiveDate: r.effectiveDate ? r.effectiveDate.toISOString().slice(0, 10) : '',
+      newBeCode: r.newBeCode,
+      newCommodityCode: r.newCommodityCode,
+      price: r.price,
+      remarksForMaterial: r.remarksForMaterial,
+      replacementPartNo: r.replacementPartNo,
+      valTypeForReplacementPartNo: r.valTypeForReplacementPartNo,
     })
   );
 

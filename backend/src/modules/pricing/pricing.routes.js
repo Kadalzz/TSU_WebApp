@@ -12,7 +12,6 @@ router.put('/columns', requireRole('admin'), controller.updateColumns);
 
 router.post('/search', controller.search);
 router.post('/export', controller.exportResults);
-router.post('/parse-material-list', controller.upload.single('file'), controller.parseMaterialList);
 router.get('/kpi', controller.getKpi);
 
 router.get('/uploads', requireRole('admin'), controller.listUploads);

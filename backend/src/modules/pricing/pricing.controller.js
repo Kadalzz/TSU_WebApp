@@ -1,6 +1,5 @@
 const multer = require('multer');
 const pricingService = require('./pricing.service');
-const { parseMaterialNumberList } = require('./pricing.upload.service');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -72,17 +71,11 @@ async function downloadErrorLog(req, res, next) {
 
 async function search(req, res, next) {
   try {
-    const { materialNumbers, status, category, plant } = req.body;
+    const { materialNumbers } = req.body;
     if (!Array.isArray(materialNumbers) || materialNumbers.length === 0) {
       return res.status(400).json({ message: 'materialNumbers wajib diisi (array)' });
     }
-    const result = await pricingService.searchMaterials({
-      materialNumbers,
-      status,
-      category,
-      plant,
-      userId: req.user.sub,
-    });
+    const result = await pricingService.searchMaterials({ materialNumbers, userId: req.user.sub });
     res.json(result);
   } catch (err) {
     next(err);
@@ -91,17 +84,11 @@ async function search(req, res, next) {
 
 async function exportResults(req, res, next) {
   try {
-    const { materialNumbers, status, category, plant } = req.body;
+    const { materialNumbers } = req.body;
     if (!Array.isArray(materialNumbers) || materialNumbers.length === 0) {
       return res.status(400).json({ message: 'materialNumbers wajib diisi (array)' });
     }
-    const { results } = await pricingService.searchMaterials({
-      materialNumbers,
-      status,
-      category,
-      plant,
-      userId: null,
-    });
+    const { results } = await pricingService.searchMaterials({ materialNumbers, userId: null });
     const workbook = await pricingService.buildExportWorkbook(results);
     const filename = `Pricing_Result_${formatDateStamp(new Date())}.xlsx`;
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -133,16 +120,6 @@ async function updateColumns(req, res, next) {
   }
 }
 
-async function parseMaterialList(req, res, next) {
-  try {
-    if (!req.file) return res.status(400).json({ message: 'File wajib diupload' });
-    const materialNumbers = await parseMaterialNumberList(req.file.buffer, req.file.originalname);
-    res.json({ materialNumbers });
-  } catch (err) {
-    next(err);
-  }
-}
-
 async function getKpi(req, res, next) {
   try {
     const kpi = await pricingService.getKpi();
@@ -161,7 +138,6 @@ module.exports = {
   downloadErrorLog,
   search,
   exportResults,
-  parseMaterialList,
   getColumns,
   updateColumns,
   getKpi,

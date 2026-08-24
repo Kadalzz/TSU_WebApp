@@ -10,22 +10,12 @@ import {
   getPricingKpi,
 } from '@/lib/api';
 
-const STATUS_OPTIONS = ['Active', 'Inactive'];
-const CATEGORY_OPTIONS = ['Lubricant', 'Consumable', 'Spare Part', 'Undercarriage', 'Attachment'];
-const PLANT_OPTIONS = ['Jakarta', 'Surabaya', 'Balikpapan'];
-
 function formatCellValue(columnKey, value) {
   if (value === null || value === undefined || value === '') return '-';
   switch (columnKey) {
-    case 'category':
-      return String(value).replace('_', ' ');
-    case 'status':
-      return String(value).charAt(0).toUpperCase() + String(value).slice(1);
-    case 'effectiveDate':
+    case 'pricingDate':
       return new Date(value).toISOString().slice(0, 10);
     case 'price':
-    case 'discount':
-    case 'netPrice':
       return Number(value).toLocaleString('id-ID');
     default:
       return String(value);
@@ -34,7 +24,6 @@ function formatCellValue(columnKey, value) {
 
 function PricingPageContent() {
   const [rawText, setRawText] = useState('');
-  const [filters, setFilters] = useState({ status: '', category: '', plant: '' });
   const [columns, setColumns] = useState([]);
   const [results, setResults] = useState([]);
   const [notFound, setNotFound] = useState([]);
@@ -70,8 +59,7 @@ function PricingPageContent() {
     setError('');
     setLoading(true);
     try {
-      const payload = { materialNumbers, ...filters };
-      const data = await searchPricing(payload);
+      const data = await searchPricing({ materialNumbers });
       setResults(data.results);
       setNotFound(data.notFound);
       setMeta(data.meta);
@@ -86,7 +74,7 @@ function PricingPageContent() {
   async function handleExport() {
     if (materialNumbers.length === 0) return;
     try {
-      await exportPricing({ materialNumbers, ...filters });
+      await exportPricing({ materialNumbers });
     } catch (err) {
       setError(err.message);
     }
@@ -113,39 +101,6 @@ function PricingPageContent() {
           placeholder={'MAT-001\nMAT-002\nMAT-003'}
           className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
         />
-
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <select
-            value={filters.status}
-            onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-            className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-          >
-            <option value="">All Status</option>
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-          <select
-            value={filters.category}
-            onChange={(e) => setFilters((f) => ({ ...f, category: e.target.value }))}
-            className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-          >
-            <option value="">All Category</option>
-            {CATEGORY_OPTIONS.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-          <select
-            value={filters.plant}
-            onChange={(e) => setFilters((f) => ({ ...f, plant: e.target.value }))}
-            className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-          >
-            <option value="">All Plant</option>
-            {PLANT_OPTIONS.map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-        </div>
       </div>
 
       <div className="mb-6 flex items-center gap-3">

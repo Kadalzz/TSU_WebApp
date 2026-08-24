@@ -38,23 +38,27 @@ async function main() {
   console.log('Seeded gps_model (4 rows)');
 
   const columns = [
-    { columnKey: 'materialNumber', displayLabel: 'Material No', sortOrder: 1 },
-    { columnKey: 'description', displayLabel: 'Description', sortOrder: 2 },
-    { columnKey: 'price', displayLabel: 'Price', sortOrder: 3 },
-    { columnKey: 'discount', displayLabel: 'Discount', sortOrder: 4 },
-    { columnKey: 'netPrice', displayLabel: 'Net Price', sortOrder: 5 },
-    { columnKey: 'currency', displayLabel: 'Currency', sortOrder: 6 },
-    { columnKey: 'plant', displayLabel: 'Plant', sortOrder: 7 },
-    { columnKey: 'stock', displayLabel: 'Stock', sortOrder: 8 },
-    { columnKey: 'status', displayLabel: 'Status', sortOrder: 9 },
-    { columnKey: 'category', displayLabel: 'Category', sortOrder: 10 },
-    { columnKey: 'effectiveDate', displayLabel: 'Effective Date', sortOrder: 11 },
+    { columnKey: 'materialNumber', displayLabel: 'Material Code', sortOrder: 1 },
+    { columnKey: 'description', displayLabel: 'Material Description', sortOrder: 2 },
+    { columnKey: 'valuationType', displayLabel: 'Valuation Type', sortOrder: 3 },
+    { columnKey: 'pricingDate', displayLabel: 'Pricing Date', sortOrder: 4 },
+    { columnKey: 'currency', displayLabel: 'Currency', sortOrder: 5 },
+    { columnKey: 'newBeCode', displayLabel: 'New BE Code', sortOrder: 6 },
+    { columnKey: 'newCommodityCode', displayLabel: 'New Commodity Code', sortOrder: 7 },
+    { columnKey: 'price', displayLabel: 'Current SP', sortOrder: 8 },
+    { columnKey: 'remarksForMaterial', displayLabel: 'Remarks for Material', sortOrder: 9 },
+    { columnKey: 'replacementPartNo', displayLabel: 'Replacement Part No', sortOrder: 10 },
+    { columnKey: 'valTypeForReplacementPartNo', displayLabel: 'Val Type for Replacement Part No', sortOrder: 11 },
   ];
+
+  await prisma.pricingColumnConfig.deleteMany({
+    where: { columnKey: { notIn: columns.map((c) => c.columnKey) } },
+  });
 
   for (const col of columns) {
     await prisma.pricingColumnConfig.upsert({
       where: { columnKey: col.columnKey },
-      update: {},
+      update: { displayLabel: col.displayLabel, sortOrder: col.sortOrder },
       create: { ...col, isVisible: true },
     });
   }

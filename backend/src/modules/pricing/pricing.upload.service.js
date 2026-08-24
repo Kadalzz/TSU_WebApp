@@ -2,29 +2,22 @@ const ExcelJS = require('exceljs');
 const { Readable } = require('stream');
 
 const HEADER_MAP = {
+  'material code': 'materialNumber',
   'material number': 'materialNumber',
   'material no': 'materialNumber',
+  'material description': 'description',
   description: 'description',
-  price: 'price',
-  discount: 'discount',
-  'net price': 'netPrice',
+  'valuation type': 'valuationType',
+  'pricing date': 'pricingDate',
   currency: 'currency',
-  status: 'status',
-  category: 'category',
-  plant: 'plant',
-  stock: 'stock',
-  'effective date': 'effectiveDate',
+  'new be code': 'newBeCode',
+  'new commodity code': 'newCommodityCode',
+  'current sp': 'price',
+  price: 'price',
+  'remarks for material': 'remarksForMaterial',
+  'replacement part no': 'replacementPartNo',
+  'val type for replacement part no': 'valTypeForReplacementPartNo',
 };
-
-const CATEGORY_MAP = {
-  lubricant: 'Lubricant',
-  consumable: 'Consumable',
-  'spare part': 'Spare_Part',
-  undercarriage: 'Undercarriage',
-  attachment: 'Attachment',
-};
-
-const PLANT_VALUES = ['Jakarta', 'Surabaya', 'Balikpapan'];
 
 async function loadWorkbookRows(buffer, originalName) {
   const workbook = new ExcelJS.Workbook();
@@ -58,7 +51,9 @@ async function loadWorkbookRows(buffer, originalName) {
   });
 
   if (!columnIndexMap.materialNumber || !columnIndexMap.price) {
-    const err = new Error('Kolom "Material Number" dan "Price" wajib ada di file Excel.');
+    const err = new Error(
+      'Kolom "Material Code" dan "Current SP" wajib ada di file Excel.'
+    );
     err.status = 400;
     throw err;
   }
@@ -66,7 +61,7 @@ async function loadWorkbookRows(buffer, originalName) {
   const rows = [];
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return;
-    if (row.values.length <= 1) return; // skip fully empty rows
+    if (row.values.length <= 1) return;
 
     const getCell = (field) => {
       const idx = columnIndexMap[field];
@@ -78,15 +73,15 @@ async function loadWorkbookRows(buffer, originalName) {
       rowNumber,
       materialNumber: getCell('materialNumber'),
       description: getCell('description'),
-      price: getCell('price'),
-      discount: getCell('discount'),
-      netPrice: getCell('netPrice'),
+      valuationType: getCell('valuationType'),
+      pricingDate: getCell('pricingDate'),
       currency: getCell('currency'),
-      status: getCell('status'),
-      category: getCell('category'),
-      plant: getCell('plant'),
-      stock: getCell('stock'),
-      effectiveDate: getCell('effectiveDate'),
+      newBeCode: getCell('newBeCode'),
+      newCommodityCode: getCell('newCommodityCode'),
+      price: getCell('price'),
+      remarksForMaterial: getCell('remarksForMaterial'),
+      replacementPartNo: getCell('replacementPartNo'),
+      valTypeForReplacementPartNo: getCell('valTypeForReplacementPartNo'),
     });
   });
 
@@ -106,83 +101,31 @@ function parseDate(value) {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed; // undefined = invalid
 }
 
-function normalizeCategory(value) {
-  if (!value) return null;
-  const key = String(value).trim().toLowerCase();
-  return CATEGORY_MAP[key] || null;
-}
-
-function normalizePlant(value) {
-  if (!value) return null;
-  const key = String(value).trim().toLowerCase();
-  return PLANT_VALUES.find((p) => p.toLowerCase() === key) || null;
+function asText(value) {
+  return value != null && value !== '' ? String(value).trim() : null;
 }
 
 function validateRow(raw) {
   const errors = [];
 
   const materialNumber = raw.materialNumber != null ? String(raw.materialNumber).trim() : '';
-  if (!materialNumber) errors.push('Material Number wajib diisi');
+  if (!materialNumber) errors.push('Material Code wajib diisi');
 
   let price = null;
   if (raw.price === null || raw.price === undefined || raw.price === '') {
-    errors.push('Price wajib diisi');
+    errors.push('Current SP wajib diisi');
   } else {
     price = parseNumber(raw.price);
-    if (Number.isNaN(price)) errors.push('Price harus berupa angka');
+    if (Number.isNaN(price)) errors.push('Current SP harus berupa angka');
   }
 
-  let discount = null;
-  if (raw.discount != null && raw.discount !== '') {
-    discount = parseNumber(raw.discount);
-    if (Number.isNaN(discount)) errors.push('Discount harus berupa angka');
-  }
-
-  let netPrice = null;
-  if (raw.netPrice != null && raw.netPrice !== '') {
-    netPrice = parseNumber(raw.netPrice);
-    if (Number.isNaN(netPrice)) errors.push('Net Price harus berupa angka');
-  }
-
-  let status = 'active';
-  if (raw.status != null && raw.status !== '') {
-    const normalized = String(raw.status).trim().toLowerCase();
-    if (normalized !== 'active' && normalized !== 'inactive') {
-      errors.push('Status harus "Active" atau "Inactive"');
-    } else {
-      status = normalized;
-    }
-  }
-
-  let category = null;
-  if (raw.category != null && raw.category !== '') {
-    category = normalizeCategory(raw.category);
-    if (!category) errors.push(`Category "${raw.category}" tidak dikenali`);
-  }
-
-  let plant = null;
-  if (raw.plant != null && raw.plant !== '') {
-    plant = normalizePlant(raw.plant);
-    if (!plant) errors.push(`Plant "${raw.plant}" tidak dikenali`);
-  }
-
-  let stock = null;
-  if (raw.stock != null && raw.stock !== '') {
-    const parsedStock = parseInt(raw.stock, 10);
-    if (Number.isNaN(parsedStock)) {
-      errors.push('Stock harus berupa angka');
-    } else {
-      stock = parsedStock;
-    }
-  }
-
-  let effectiveDate = null;
-  if (raw.effectiveDate != null && raw.effectiveDate !== '') {
-    const parsed = parseDate(raw.effectiveDate);
+  let pricingDate = null;
+  if (raw.pricingDate != null && raw.pricingDate !== '') {
+    const parsed = parseDate(raw.pricingDate);
     if (parsed === undefined) {
-      errors.push('Effective Date tidak valid');
+      errors.push('Pricing Date tidak valid');
     } else {
-      effectiveDate = parsed;
+      pricingDate = parsed;
     }
   }
 
@@ -191,56 +134,18 @@ function validateRow(raw) {
     errors,
     data: {
       materialNumber,
-      description: raw.description != null ? String(raw.description).trim() : null,
-      price,
-      discount,
-      netPrice,
+      description: asText(raw.description),
+      valuationType: asText(raw.valuationType),
+      pricingDate,
       currency: raw.currency ? String(raw.currency).trim() : 'IDR',
-      status,
-      category,
-      plant,
-      stock,
-      effectiveDate,
+      newBeCode: asText(raw.newBeCode),
+      newCommodityCode: asText(raw.newCommodityCode),
+      price,
+      remarksForMaterial: asText(raw.remarksForMaterial),
+      replacementPartNo: asText(raw.replacementPartNo),
+      valTypeForReplacementPartNo: asText(raw.valTypeForReplacementPartNo),
     },
   };
 }
 
-async function parseMaterialNumberList(buffer, originalName) {
-  const workbook = new ExcelJS.Workbook();
-  const ext = (originalName.split('.').pop() || '').toLowerCase();
-
-  if (ext === 'csv') {
-    await workbook.csv.read(Readable.from(buffer));
-  } else if (ext === 'xlsx') {
-    await workbook.xlsx.load(buffer);
-  } else {
-    const err = new Error('Format file tidak didukung. Gunakan .xlsx atau .csv.');
-    err.status = 400;
-    throw err;
-  }
-
-  const worksheet = workbook.worksheets[0];
-  if (!worksheet) return [];
-
-  const materialNumbers = [];
-  worksheet.eachRow((row, rowNumber) => {
-    const value = row.getCell(1).value;
-    if (value == null || value === '') return;
-    const text = String(value).trim();
-    if (!text) return;
-    if (rowNumber === 1 && /material|code/i.test(text)) return; // skip header row
-    materialNumbers.push(text);
-  });
-
-  return materialNumbers;
-}
-
-module.exports = {
-  loadWorkbookRows,
-  validateRow,
-  normalizeCategory,
-  normalizePlant,
-  parseMaterialNumberList,
-  CATEGORY_MAP,
-  PLANT_VALUES,
-};
+module.exports = { loadWorkbookRows, validateRow };

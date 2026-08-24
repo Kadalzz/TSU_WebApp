@@ -4,8 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ============ AUTH (shared) ============
@@ -35,25 +36,6 @@ model User {
 
 // ============ MODULE 1: SMART PARTS PRICING ASSISTANT ============
 
-enum MaterialStatus {
-  active
-  inactive
-}
-
-enum MaterialCategory {
-  Lubricant
-  Consumable
-  Spare_Part
-  Undercarriage
-  Attachment
-}
-
-enum Plant {
-  Jakarta
-  Surabaya
-  Balikpapan
-}
-
 model PricingUploadHistory {
   id              Int      @id @default(autoincrement())
   filename        String
@@ -74,21 +56,21 @@ model PricingUploadHistory {
 }
 
 model PricingMaster {
-  id              Int              @id @default(autoincrement())
-  materialNumber  String           @map("material_number")
-  description     String?
-  price           Decimal          @db.Decimal(14, 2)
-  discount        Decimal?         @db.Decimal(14, 2)
-  netPrice        Decimal?         @map("net_price") @db.Decimal(14, 2)
-  currency        String           @default("IDR")
-  status          MaterialStatus    @default(active)
-  category        MaterialCategory?
-  plant           Plant?
-  stock           Int?
-  effectiveDate   DateTime?        @map("effective_date")
-  uploadVersionId Int              @map("upload_version_id")
-  uploadVersion   PricingUploadHistory @relation(fields: [uploadVersionId], references: [id])
-  createdAt       DateTime         @default(now()) @map("created_at")
+  id                           Int      @id @default(autoincrement())
+  materialNumber               String   @map("material_number")
+  description                  String?
+  valuationType                String?  @map("valuation_type")
+  pricingDate                  DateTime? @map("pricing_date")
+  currency                     String   @default("IDR")
+  newBeCode                    String?  @map("new_be_code")
+  newCommodityCode             String?  @map("new_commodity_code")
+  price                        Decimal  @db.Decimal(14, 2)
+  remarksForMaterial           String?  @map("remarks_for_material")
+  replacementPartNo            String?  @map("replacement_part_no")
+  valTypeForReplacementPartNo  String?  @map("val_type_for_replacement_part_no")
+  uploadVersionId              Int      @map("upload_version_id")
+  uploadVersion                PricingUploadHistory @relation(fields: [uploadVersionId], references: [id])
+  createdAt                    DateTime @default(now()) @map("created_at")
 
   @@index([materialNumber])
   @@index([uploadVersionId])
