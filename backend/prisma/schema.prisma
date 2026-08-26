@@ -35,6 +35,8 @@ model User {
   passwordHash String   @map("password_hash")
   role         UserRole @default(user)
   isActive     Boolean  @default(true) @map("is_active")
+  canAccessPricing Boolean @default(true) @map("can_access_pricing")
+  canAccessGps     Boolean @default(true) @map("can_access_gps")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 

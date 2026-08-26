@@ -343,5 +343,5 @@ function KpiCard({ label, value }) {
 }
 
 export default function GpsPage() {
-  return <AuthGuard>{(user) => <GpsPageContent user={user} />}</AuthGuard>;
+  return <AuthGuard requireModule="gps">{(user) => <GpsPageContent user={user} />}</AuthGuard>;
 }

@@ -195,5 +195,5 @@ function KpiCard({ label, value }) {
 }
 
 export default function PricingPage() {
-  return <AuthGuard>{(user) => <PricingPageContent user={user} />}</AuthGuard>;
+  return <AuthGuard requireModule="pricing">{(user) => <PricingPageContent user={user} />}</AuthGuard>;
 }

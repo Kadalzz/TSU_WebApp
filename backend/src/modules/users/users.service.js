@@ -1,14 +1,25 @@
 const bcrypt = require('bcryptjs');
 const prisma = require('../../config/db');
 
+const USER_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  isActive: true,
+  canAccessPricing: true,
+  canAccessGps: true,
+  createdAt: true,
+};
+
 async function listUsers() {
   return prisma.user.findMany({
-    select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
+    select: USER_SELECT,
     orderBy: { createdAt: 'asc' },
   });
 }
 
-async function createUser({ name, email, password, role }) {
+async function createUser({ name, email, password, role, canAccessPricing, canAccessGps }) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     const err = new Error('Email sudah terdaftar');
@@ -18,13 +29,20 @@ async function createUser({ name, email, password, role }) {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { name, email, passwordHash, role: role === 'admin' ? 'admin' : 'user' },
-    select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
+    data: {
+      name,
+      email,
+      passwordHash,
+      role: role === 'admin' ? 'admin' : 'user',
+      canAccessPricing: canAccessPricing !== undefined ? canAccessPricing : true,
+      canAccessGps: canAccessGps !== undefined ? canAccessGps : true,
+    },
+    select: USER_SELECT,
   });
   return user;
 }
 
-async function updateUser(id, { name, role, isActive }, requestingUserId) {
+async function updateUser(id, { name, role, isActive, canAccessPricing, canAccessGps }, requestingUserId) {
   if (id === requestingUserId && isActive === false) {
     const err = new Error('Tidak bisa menonaktifkan akun sendiri');
     err.status = 400;
@@ -42,8 +60,10 @@ async function updateUser(id, { name, role, isActive }, requestingUserId) {
       ...(name !== undefined ? { name } : {}),
       ...(role !== undefined ? { role } : {}),
       ...(isActive !== undefined ? { isActive } : {}),
+      ...(canAccessPricing !== undefined ? { canAccessPricing } : {}),
+      ...(canAccessGps !== undefined ? { canAccessGps } : {}),
     },
-    select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
+    select: USER_SELECT,
   });
 }
 

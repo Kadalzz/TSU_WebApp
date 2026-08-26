@@ -4,6 +4,9 @@ import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 
 function LandingContent({ user }) {
+  const canPricing = user.role === 'admin' || user.canAccessPricing;
+  const canGps = user.role === 'admin' || user.canAccessGps;
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       <div className="mb-8">
@@ -14,22 +17,32 @@ function LandingContent({ user }) {
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <Link
-          href="/pricing"
-          className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
-        >
-          <h2 className="mb-2 text-lg font-semibold">Smart Parts Pricing Assistant</h2>
-          <p className="text-sm text-slate-500">Cari harga spare part secara massal, dalam hitungan detik.</p>
-        </Link>
+        {canPricing && (
+          <Link
+            href="/pricing"
+            className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+          >
+            <h2 className="mb-2 text-lg font-semibold">Smart Parts Pricing Assistant</h2>
+            <p className="text-sm text-slate-500">Cari harga spare part secara massal, dalam hitungan detik.</p>
+          </Link>
+        )}
 
-        <Link
-          href="/gps"
-          className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
-        >
-          <h2 className="mb-2 text-lg font-semibold">Sales GPS</h2>
-          <p className="text-sm text-slate-500">Pantau performa Gross Profit tiap Sales.</p>
-        </Link>
+        {canGps && (
+          <Link
+            href="/gps"
+            className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+          >
+            <h2 className="mb-2 text-lg font-semibold">Sales GPS</h2>
+            <p className="text-sm text-slate-500">Pantau performa Gross Profit tiap Sales.</p>
+          </Link>
+        )}
       </div>
+
+      {!canPricing && !canGps && (
+        <p className="text-sm text-slate-400">
+          Akun Anda belum diberi akses ke modul manapun. Hubungi Admin.
+        </p>
+      )}
 
       {user.role === 'admin' && (
         <Link

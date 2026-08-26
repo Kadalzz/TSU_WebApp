@@ -26,7 +26,14 @@ async function login(email, password) {
 
   return {
     token,
-    user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      canAccessPricing: user.canAccessPricing,
+      canAccessGps: user.canAccessGps,
+    },
   };
 }
 

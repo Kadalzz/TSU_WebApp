@@ -3,10 +3,12 @@ const controller = require('./gps.controller');
 const { requireAuth } = require('../../middleware/auth');
 const { requireRole } = require('../../middleware/roleGuard');
 const { requireFeatureEnabled } = require('../../middleware/featureFlag');
+const { requireModuleAccess } = require('../../middleware/moduleAccess');
 
 const router = express.Router();
 
 router.use(requireAuth);
+router.use(requireModuleAccess('gps'));
 
 // Dashboard (semua role login)
 router.get('/filters', controller.getFilterOptions);

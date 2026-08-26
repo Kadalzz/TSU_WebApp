@@ -30,7 +30,12 @@ function TopBar({ user }) {
   );
 }
 
-export default function AuthGuard({ children, requireRole }) {
+const MODULE_ACCESS_FIELD = {
+  pricing: 'canAccessPricing',
+  gps: 'canAccessGps',
+};
+
+export default function AuthGuard({ children, requireRole, requireModule }) {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [status, setStatus] = useState('loading');
@@ -42,11 +47,19 @@ export default function AuthGuard({ children, requireRole }) {
           router.push('/');
           return;
         }
+        if (
+          requireModule &&
+          data.user.role !== 'admin' &&
+          !data.user[MODULE_ACCESS_FIELD[requireModule]]
+        ) {
+          router.push('/');
+          return;
+        }
         setUser(data.user);
         setStatus('ok');
       })
       .catch(() => router.push('/login'));
-  }, [router, requireRole]);
+  }, [router, requireRole, requireModule]);
 
   if (status !== 'ok' || !user) {
     return <div className="flex min-h-screen items-center justify-center text-slate-500">Memuat...</div>;

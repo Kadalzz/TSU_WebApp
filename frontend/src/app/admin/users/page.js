@@ -8,7 +8,14 @@ import { listUsers, createUserAccount, updateUserAccount, getMe } from '@/lib/ap
 function AdminUsersContent() {
   const [users, setUsers] = useState([]);
   const [me, setMe] = useState(null);
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'user',
+    canAccessPricing: true,
+    canAccessGps: true,
+  });
   const [error, setError] = useState('');
   const [creating, setCreating] = useState(false);
 
@@ -27,7 +34,7 @@ function AdminUsersContent() {
     setCreating(true);
     try {
       await createUserAccount(form);
-      setForm({ name: '', email: '', password: '', role: 'user' });
+      setForm({ name: '', email: '', password: '', role: 'user', canAccessPricing: true, canAccessGps: true });
       refresh();
     } catch (err) {
       setError(err.message);
@@ -50,6 +57,16 @@ function AdminUsersContent() {
     setError('');
     try {
       await updateUserAccount(user.id, { role });
+      refresh();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleModuleAccessChange(user, field, value) {
+    setError('');
+    try {
+      await updateUserAccount(user.id, { [field]: value });
       refresh();
     } catch (err) {
       setError(err.message);
@@ -113,6 +130,26 @@ function AdminUsersContent() {
           >
             {creating ? 'Menyimpan...' : 'Tambah'}
           </button>
+          {form.role !== 'admin' && (
+            <div className="flex items-center gap-4 sm:col-span-5">
+              <label className="flex items-center gap-1.5 text-xs text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={form.canAccessPricing}
+                  onChange={(e) => setForm((f) => ({ ...f, canAccessPricing: e.target.checked }))}
+                />
+                Akses Smart Parts Pricing
+              </label>
+              <label className="flex items-center gap-1.5 text-xs text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={form.canAccessGps}
+                  onChange={(e) => setForm((f) => ({ ...f, canAccessGps: e.target.checked }))}
+                />
+                Akses Sales GPS
+              </label>
+            </div>
+          )}
         </form>
       </section>
 
@@ -124,6 +161,7 @@ function AdminUsersContent() {
               <th className="px-3 py-2 text-left font-medium">Nama</th>
               <th className="px-3 py-2 text-left font-medium">Email</th>
               <th className="px-3 py-2 text-left font-medium">Role</th>
+              <th className="px-3 py-2 text-left font-medium">Akses Modul</th>
               <th className="px-3 py-2 text-left font-medium">Status</th>
               <th className="px-3 py-2 text-left font-medium">Aksi</th>
             </tr>
@@ -143,6 +181,30 @@ function AdminUsersContent() {
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
                   </select>
+                </td>
+                <td className="px-3 py-2">
+                  {u.role === 'admin' ? (
+                    <span className="text-xs text-slate-400">Semua modul</span>
+                  ) : (
+                    <div className="flex flex-col gap-1 text-xs">
+                      <label className="flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          checked={u.canAccessPricing}
+                          onChange={(e) => handleModuleAccessChange(u, 'canAccessPricing', e.target.checked)}
+                        />
+                        Pricing
+                      </label>
+                      <label className="flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          checked={u.canAccessGps}
+                          onChange={(e) => handleModuleAccessChange(u, 'canAccessGps', e.target.checked)}
+                        />
+                        Sales GPS
+                      </label>
+                    </div>
+                  )}
                 </td>
                 <td className="px-3 py-2">
                   {u.isActive ? (

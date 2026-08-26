@@ -3,10 +3,12 @@ const controller = require('./pricing.controller');
 const { requireAuth } = require('../../middleware/auth');
 const { requireRole } = require('../../middleware/roleGuard');
 const { requireFeatureEnabled } = require('../../middleware/featureFlag');
+const { requireModuleAccess } = require('../../middleware/moduleAccess');
 
 const router = express.Router();
 
 router.use(requireAuth);
+router.use(requireModuleAccess('pricing'));
 
 router.get('/columns', controller.getColumns);
 router.put('/columns', requireRole('admin'), controller.updateColumns);
