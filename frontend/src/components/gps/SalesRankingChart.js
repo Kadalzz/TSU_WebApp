@@ -3,18 +3,18 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 export const MARGIN_CATEGORY_COLORS = {
-  not_achieved: '#dc2626',
-  underperforming: '#FFFF00',
-  achieved: '#00FF00',
+  not_achieved: '#E23E57',
+  underperforming: '#FFD460',
+  achieved: '#61876E',
   unclassified: '#475569',
 };
 
-// Text color to overlay on each fill above — the yellow/lime fills are too
-// light for white text to stay readable, so they get dark text instead.
+// Text color to overlay on each fill above — the light gold fill is too
+// light for white text to stay readable, so it gets dark text instead.
 export const MARGIN_CATEGORY_TEXT_COLOR = {
   not_achieved: '#ffffff',
   underperforming: '#1c1917',
-  achieved: '#1c1917',
+  achieved: '#ffffff',
   unclassified: '#ffffff',
 };
 
