@@ -54,7 +54,7 @@ export default function LoginPage() {
       />
 
       <div className="relative z-10 w-full max-w-sm">
-        <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-8 pb-10 shadow-2xl">
+        <form onSubmit={handleSubmit} className="relative overflow-hidden rounded-2xl bg-white p-8 pb-10 shadow-2xl">
           <div className="mb-5 flex justify-center">
             <Image
               src="/LOGO.jpg.jpeg"
