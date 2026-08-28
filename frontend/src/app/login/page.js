@@ -2,45 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { login } from '@/lib/api';
 
 const NAVY = '#0b3d8c';
-const NAVY_DARK = '#082a63';
 const GOLD = '#f5c518';
-
-function IslandPattern() {
-  // Abstract stand-in for an archipelago motif — not a geographically
-  // accurate map, just soft island-like shapes on the navy background.
-  const blobs = [
-    { top: '4%', left: '3%', w: 140, h: 90 },
-    { top: '10%', left: '22%', w: 90, h: 60 },
-    { top: '2%', left: '46%', w: 160, h: 70 },
-    { top: '14%', left: '70%', w: 120, h: 80 },
-    { top: '6%', left: '88%', w: 100, h: 140 },
-    { top: '55%', left: '8%', w: 110, h: 70 },
-    { top: '68%', left: '30%', w: 150, h: 90 },
-    { top: '60%', left: '58%', w: 130, h: 100 },
-    { top: '72%', left: '82%', w: 100, h: 60 },
-  ];
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {blobs.map((b, i) => (
-        <div
-          key={i}
-          className="absolute rounded-[40%] opacity-[0.12]"
-          style={{
-            top: b.top,
-            left: b.left,
-            width: b.w,
-            height: b.h,
-            background: '#3f66ad',
-            transform: `rotate(${(i * 37) % 360}deg)`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 function BottomAccentBar() {
   return (
@@ -77,32 +43,27 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4"
-      style={{ backgroundColor: NAVY_DARK }}
-    >
-      <IslandPattern />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
+      <Image
+        src="/backgrounf-01.png"
+        alt=""
+        fill
+        priority
+        className="object-cover"
+        sizes="100vw"
+      />
 
       <div className="relative z-10 w-full max-w-sm">
         <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-8 pb-10 shadow-2xl">
-          {/* Logo badge */}
           <div className="mb-5 flex justify-center">
-            <div
-              className="flex items-center gap-2 rounded px-3 py-2"
-              style={{ backgroundColor: NAVY }}
-            >
-              <span
-                className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
-                style={{ backgroundColor: GOLD, color: NAVY }}
-              >
-                S
-              </span>
-              <span className="text-sm font-extrabold tracking-wide text-white">SEM</span>
-              <span className="h-5 w-px bg-white/40" />
-              <span className="text-[10px] font-semibold leading-tight text-white">
-                TRI SWARDANA UTAMA
-              </span>
-            </div>
+            <Image
+              src="/LOGO.jpg.jpeg"
+              alt="SEM - Tri Swardana Utama"
+              width={280}
+              height={47}
+              className="h-auto w-64"
+              priority
+            />
           </div>
 
           <p className="mb-6 text-center text-sm font-semibold text-slate-800">
