@@ -23,6 +23,23 @@ function formatCellValue(columnKey, value) {
   }
 }
 
+// Negotiation approval routing: how big is the gap between Current SP and
+// the price Sales wants to offer, as a % of Current SP (either direction).
+function computeNegotiationAction(currentSP, customPrice) {
+  const current = Number(currentSP);
+  const custom = Number(customPrice);
+  if (!Number.isFinite(current) || current === 0 || !Number.isFinite(custom)) return null;
+
+  const diffPercent = Math.abs((current - custom) / current) * 100;
+  if (diffPercent <= 5) {
+    return { label: 'Approval Product Support Manager', diffPercent, color: '#16a34a' };
+  }
+  if (diffPercent < 15) {
+    return { label: 'Need Approval Marketing', diffPercent, color: '#d97706' };
+  }
+  return { label: 'Approval Director', diffPercent, color: '#dc2626' };
+}
+
 function PricingPageContent({ user }) {
   const [rawText, setRawText] = useState('');
   const [columns, setColumns] = useState([]);
@@ -33,6 +50,8 @@ function PricingPageContent({ user }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [exportEnabled, setExportEnabled] = useState(true);
+  const [negotiationMode, setNegotiationMode] = useState(false);
+  const [customPrices, setCustomPrices] = useState({});
 
   useEffect(() => {
     getPricingColumns()
@@ -130,6 +149,18 @@ function PricingPageContent({ user }) {
             EXPORT EXCEL
           </button>
         )}
+        {results.length > 0 && (
+          <button
+            onClick={() => setNegotiationMode((v) => !v)}
+            className={`rounded border px-4 py-2 text-sm font-medium ${
+              negotiationMode
+                ? 'border-slate-900 bg-slate-900 text-white'
+                : 'border-slate-300 hover:bg-slate-100'
+            }`}
+          >
+            Negotiation
+          </button>
+        )}
         {meta && (
           <span className="text-xs text-slate-500">
             {meta.totalFound}/{meta.totalRequested} ditemukan &middot; {meta.responseTimeMs}ms
@@ -149,18 +180,58 @@ function PricingPageContent({ user }) {
                     {c.displayLabel}
                   </th>
                 ))}
+                {negotiationMode && (
+                  <>
+                    <th className="px-3 py-2 text-left font-medium">Custom Price</th>
+                    <th className="px-3 py-2 text-left font-medium">Action</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
-              {results.map((r) => (
-                <tr key={r.id} className="border-t border-slate-100">
-                  {columns.map((c) => (
-                    <td key={c.columnKey} className="px-3 py-2">
-                      {formatCellValue(c.columnKey, r[c.columnKey])}
-                    </td>
-                  ))}
-                </tr>
-              ))}
+              {results.map((r) => {
+                const action = negotiationMode
+                  ? computeNegotiationAction(r.price, customPrices[r.id])
+                  : null;
+                return (
+                  <tr key={r.id} className="border-t border-slate-100">
+                    {columns.map((c) => (
+                      <td key={c.columnKey} className="px-3 py-2">
+                        {formatCellValue(c.columnKey, r[c.columnKey])}
+                      </td>
+                    ))}
+                    {negotiationMode && (
+                      <>
+                        <td className="px-3 py-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={customPrices[r.id] ?? ''}
+                            onChange={(e) =>
+                              setCustomPrices((prev) => ({ ...prev, [r.id]: e.target.value }))
+                            }
+                            placeholder="0"
+                            className="w-32 rounded border border-slate-300 px-2 py-1 text-sm"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          {action ? (
+                            <span
+                              className="inline-block rounded px-2 py-0.5 text-xs font-medium text-white"
+                              style={{ backgroundColor: action.color }}
+                              title={`Selisih ${action.diffPercent.toFixed(1)}% dari Current SP`}
+                            >
+                              {action.label}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">-</span>
+                          )}
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
