@@ -35,7 +35,7 @@ const MODULE_ACCESS_FIELD = {
   gps: 'canAccessGps',
 };
 
-export default function AuthGuard({ children, requireRole, requireModule }) {
+export default function AuthGuard({ children, requireRole, requireModule, hideTopBar }) {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [status, setStatus] = useState('loading');
@@ -67,7 +67,7 @@ export default function AuthGuard({ children, requireRole, requireModule }) {
 
   return (
     <div className="min-h-screen">
-      <TopBar user={user} />
+      {!hideTopBar && <TopBar user={user} />}
       {children(user)}
     </div>
   );
