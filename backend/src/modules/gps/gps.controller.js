@@ -12,6 +12,7 @@ function formatDateStamp(d) {
 
 function getFiltersFromQuery(query) {
   return {
+    year: query.year || undefined,
     month: query.month || undefined,
     salesName: query.salesName || undefined,
     customer: query.customer || undefined,

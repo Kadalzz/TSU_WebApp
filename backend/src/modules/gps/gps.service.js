@@ -286,14 +286,17 @@ async function assignMaterialSubModel(materialNo, subModelId, userId) {
 
 // ---------- Dashboard ----------
 
-function buildFilterWhere({ month, salesName, customer, modelId, subModelId, salesArea }) {
+function buildFilterWhere({ year, month, salesName, customer, modelId, subModelId, salesArea }) {
   const where = { uploadVersion: { isActiveVersion: true } };
 
   if (month) {
-    const [year, m] = month.split('-').map(Number);
-    const start = new Date(Date.UTC(year, m - 1, 1));
-    const end = new Date(Date.UTC(year, m, 1));
-    where.invoiceDate = { gte: start, lt: end };
+    // "YYYY-MM" — both Year and Month dropdowns picked on the frontend.
+    const [y, m] = month.split('-').map(Number);
+    where.invoiceDate = { gte: new Date(Date.UTC(y, m - 1, 1)), lt: new Date(Date.UTC(y, m, 1)) };
+  } else if (year) {
+    // Only the Year dropdown picked — filter the whole calendar year.
+    const y = Number(year);
+    where.invoiceDate = { gte: new Date(Date.UTC(y, 0, 1)), lt: new Date(Date.UTC(y + 1, 0, 1)) };
   }
   if (salesName) where.salesName = salesName;
   if (customer) where.customerName = customer;
@@ -303,11 +306,6 @@ function buildFilterWhere({ month, salesName, customer, modelId, subModelId, sal
 
   return where;
 }
-
-const INDONESIAN_MONTHS = [
-  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-];
 
 async function getFilterOptions() {
   const [salesNames, customers, salesAreas, models, invoiceDates] = await Promise.all([
@@ -336,23 +334,17 @@ async function getFilterOptions() {
     }),
   ]);
 
-  // Month options are derived from the actual invoice dates present in the
+  // Year options are derived from the actual invoice dates present in the
   // uploaded data (not the calendar's current year) — the data can be from
   // any past year, so a hardcoded "this year" list would always match zero rows.
-  const monthKeys = new Set(
-    invoiceDates.map((t) => `${t.invoiceDate.getUTCFullYear()}-${String(t.invoiceDate.getUTCMonth() + 1).padStart(2, '0')}`)
-  );
-  const months = [...monthKeys].sort().map((key) => {
-    const [year, m] = key.split('-').map(Number);
-    return { value: key, label: `${INDONESIAN_MONTHS[m - 1]} ${year}` };
-  });
+  const years = [...new Set(invoiceDates.map((t) => String(t.invoiceDate.getUTCFullYear())))].sort();
 
   return {
     salesNames: salesNames.map((s) => s.salesName),
     customers: customers.map((c) => c.customerName),
     salesAreas: salesAreas.map((s) => s.salesArea),
     models,
-    months,
+    years,
   };
 }
 

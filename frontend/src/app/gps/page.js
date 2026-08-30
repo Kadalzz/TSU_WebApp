@@ -19,6 +19,21 @@ import {
   getFeatureFlags,
 } from '@/lib/api';
 
+const MONTH_NAMES = [
+  { value: '01', label: 'Januari' },
+  { value: '02', label: 'Februari' },
+  { value: '03', label: 'Maret' },
+  { value: '04', label: 'April' },
+  { value: '05', label: 'Mei' },
+  { value: '06', label: 'Juni' },
+  { value: '07', label: 'Juli' },
+  { value: '08', label: 'Agustus' },
+  { value: '09', label: 'September' },
+  { value: '10', label: 'Oktober' },
+  { value: '11', label: 'November' },
+  { value: '12', label: 'Desember' },
+];
+
 function formatCurrency(value) {
   return Number(value || 0).toLocaleString('id-ID');
 }
@@ -32,8 +47,8 @@ function formatPercentOrDash(value) {
 }
 
 function GpsPageContent({ user }) {
-  const [filterOptions, setFilterOptions] = useState({ salesNames: [], customers: [], salesAreas: [], models: [], months: [] });
-  const [filters, setFilters] = useState({ month: '', salesName: '', customer: '', modelId: '', subModelId: '', salesArea: '' });
+  const [filterOptions, setFilterOptions] = useState({ salesNames: [], customers: [], salesAreas: [], models: [], years: [] });
+  const [filters, setFilters] = useState({ year: '', monthNum: '', salesName: '', customer: '', modelId: '', subModelId: '', salesArea: '' });
   const [summary, setSummary] = useState([]);
   const [ranking, setRanking] = useState([]);
   const [kpi, setKpi] = useState(null);
@@ -43,11 +58,16 @@ function GpsPageContent({ user }) {
   const [error, setError] = useState('');
   const [exportEnabled, setExportEnabled] = useState(true);
 
-  const subModelsForFilter = useMemo(() => {
-    if (!filters.modelId) return [];
-    const model = filterOptions.models.find((m) => String(m.id) === String(filters.modelId));
-    return model?.subModels || [];
-  }, [filters.modelId, filterOptions.models]);
+  // Kategori (sub-model) is intentionally NOT scoped to the selected Model —
+  // it lists every sub-model across all models so the dropdown is always
+  // clickable/usable on its own, without needing Model picked first.
+  const subModelsForFilter = useMemo(
+    () =>
+      filterOptions.models.flatMap((m) =>
+        (m.subModels || []).map((sm) => ({ ...sm, modelName: m.name }))
+      ),
+    [filterOptions.models]
+  );
 
   useEffect(() => {
     getGpsFilterOptions().then(setFilterOptions).catch(() => {});
@@ -61,15 +81,28 @@ function GpsPageContent({ user }) {
 
   const canExport = user.role === 'admin' || exportEnabled;
 
+  // Year and Month are picked via two separate dropdowns in the UI (so the
+  // Month list doesn't have to repeat itself per year), but the backend still
+  // filters on a single combined value: "YYYY-MM" when both are picked, or
+  // just the year when only Year is picked.
+  const apiFilters = useMemo(() => {
+    const { year, monthNum, ...rest } = filters;
+    return {
+      ...rest,
+      month: year && monthNum ? `${year}-${monthNum}` : undefined,
+      year: year && !monthNum ? year : undefined,
+    };
+  }, [filters]);
+
   async function refreshDashboard() {
     setLoading(true);
     setError('');
     try {
-      const activeFilters = { ...filters, search: search || undefined };
+      const activeFilters = { ...apiFilters, search: search || undefined };
       const [summaryData, rankingData, kpiData, txData] = await Promise.all([
-        getGpsDashboardSummary(filters),
-        getGpsDashboardRanking(filters),
-        getGpsDashboardKpi(filters),
+        getGpsDashboardSummary(apiFilters),
+        getGpsDashboardRanking(apiFilters),
+        getGpsDashboardKpi(apiFilters),
         getGpsTransactions(activeFilters),
       ]);
       setSummary(summaryData.summary);
@@ -90,7 +123,7 @@ function GpsPageContent({ user }) {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      getGpsTransactions({ ...filters, search: search || undefined })
+      getGpsTransactions({ ...apiFilters, search: search || undefined })
         .then((data) => setTransactions(data.transactions))
         .catch((err) => setError(err.message));
     }, 400);
@@ -118,14 +151,25 @@ function GpsPageContent({ user }) {
       </div>
 
       {/* Filters */}
-      <div className="mb-6 grid grid-cols-2 gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-3 lg:grid-cols-6 no-print">
+      <div className="mb-6 grid grid-cols-2 gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-3 lg:grid-cols-7 no-print">
         <select
-          value={filters.month}
-          onChange={(e) => setFilters((f) => ({ ...f, month: e.target.value }))}
+          value={filters.year}
+          onChange={(e) => setFilters((f) => ({ ...f, year: e.target.value, monthNum: '' }))}
           className="rounded border border-slate-300 px-2 py-1.5 text-sm"
         >
+          <option value="">All Year</option>
+          {filterOptions.years.map((y) => (
+            <option key={y} value={y}>{y}</option>
+          ))}
+        </select>
+        <select
+          value={filters.monthNum}
+          onChange={(e) => setFilters((f) => ({ ...f, monthNum: e.target.value }))}
+          disabled={!filters.year}
+          className="rounded border border-slate-300 px-2 py-1.5 text-sm disabled:opacity-50"
+        >
           <option value="">All Month</option>
-          {filterOptions.months.map((m) => (
+          {MONTH_NAMES.map((m) => (
             <option key={m.value} value={m.value}>{m.label}</option>
           ))}
         </select>
@@ -151,7 +195,7 @@ function GpsPageContent({ user }) {
         </select>
         <select
           value={filters.modelId}
-          onChange={(e) => setFilters((f) => ({ ...f, modelId: e.target.value, subModelId: '' }))}
+          onChange={(e) => setFilters((f) => ({ ...f, modelId: e.target.value }))}
           className="rounded border border-slate-300 px-2 py-1.5 text-sm"
         >
           <option value="">All Model</option>
@@ -162,12 +206,11 @@ function GpsPageContent({ user }) {
         <select
           value={filters.subModelId}
           onChange={(e) => setFilters((f) => ({ ...f, subModelId: e.target.value }))}
-          disabled={!filters.modelId}
-          className="rounded border border-slate-300 px-2 py-1.5 text-sm disabled:opacity-50"
+          className="rounded border border-slate-300 px-2 py-1.5 text-sm"
         >
           <option value="">All Kategori</option>
           {subModelsForFilter.map((sm) => (
-            <option key={sm.id} value={sm.id}>{sm.name}</option>
+            <option key={sm.id} value={sm.id}>{sm.modelName} — {sm.name}</option>
           ))}
         </select>
         <select
@@ -230,7 +273,7 @@ function GpsPageContent({ user }) {
           <h2 className="font-medium">Sales Ranking</h2>
           {canExport && (
             <button
-              onClick={() => exportGpsRanking(filters)}
+              onClick={() => exportGpsRanking(apiFilters)}
               className="rounded border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100"
             >
               Export Excel
@@ -254,7 +297,7 @@ function GpsPageContent({ user }) {
             />
             {canExport && (
               <button
-                onClick={() => exportGpsTransactions({ ...filters, search: search || undefined })}
+                onClick={() => exportGpsTransactions({ ...apiFilters, search: search || undefined })}
                 className="rounded border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100"
               >
                 Export Excel
