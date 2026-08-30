@@ -180,7 +180,7 @@ function GpsPageContent({ user }) {
           disabled={!filters.modelId}
           className="rounded border border-slate-300 px-2 py-1.5 text-sm disabled:opacity-50"
         >
-          <option value="">All Sub Model</option>
+          <option value="">All Kategori</option>
           {subModelsForFilter.map((sm) => (
             <option key={sm.id} value={sm.id}>{sm.name}</option>
           ))}

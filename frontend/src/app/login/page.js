@@ -8,19 +8,6 @@ import { login } from '@/lib/api';
 const NAVY = '#0b3d8c';
 const GOLD = '#f5c518';
 
-function BottomAccentBar() {
-  return (
-    <div className="mx-auto -mb-3 flex h-6 w-[94%] overflow-hidden rounded-full shadow">
-      <div className="flex-[1.6]" style={{ backgroundColor: NAVY }} />
-      <div
-        className="w-5"
-        style={{ backgroundColor: NAVY, clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}
-      />
-      <div className="flex-1" style={{ backgroundColor: GOLD }} />
-    </div>
-  );
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -101,11 +88,11 @@ export default function LoginPage() {
             {loading ? 'Memproses...' : 'Login'}
           </button>
 
-          <p className="mt-4 text-right text-[11px] text-slate-500">
+          <p className="mb-4 mt-4 text-right text-[11px] text-slate-500">
             A Subsidiary of <span className="font-bold" style={{ color: NAVY }}>Trakindo Utama</span>
           </p>
 
-          <BottomAccentBar />
+          <img src="/footer section svg.svg" alt="" className="-mx-8 -mb-10 block h-auto w-[calc(100%+4rem)]" />
         </form>
       </div>
     </div>

@@ -60,6 +60,21 @@ function ProfileMenu({ user }) {
   );
 }
 
+// Stretched independently of the SVG's native (very thin) aspect ratio via a
+// CSS background instead of <img>, so it reads as a proper band, not a hairline.
+function PageAccentBar({ className }) {
+  return (
+    <div
+      className={className}
+      style={{
+        backgroundImage: 'url(/Header%20svg.svg)',
+        backgroundSize: '100% 100%',
+        backgroundRepeat: 'no-repeat',
+      }}
+    />
+  );
+}
+
 function ModuleCard({ href, title, description }) {
   return (
     <Link
@@ -91,7 +106,7 @@ function LandingContent({ user }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
-      <img src="/Header svg.svg" alt="" className="block h-auto w-full" />
+      <PageAccentBar className="h-4 w-full" />
 
       <header className="flex items-center justify-between bg-white px-6 py-3 shadow-sm">
         <Image src="/LOGO.jpg.jpeg" alt="SEM - Tri Swardana Utama" width={200} height={34} className="h-8 w-auto" priority />
@@ -147,7 +162,7 @@ function LandingContent({ user }) {
         </p>
       </main>
 
-      <img src="/Header svg.svg" alt="" className="block h-auto w-full" />
+      <PageAccentBar className="h-12 w-full" />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getMe, logout as logoutApi } from '@/lib/api';
 
 function TopBar({ user }) {
@@ -15,8 +16,8 @@ function TopBar({ user }) {
 
   return (
     <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2 text-sm no-print">
-      <Link href="/" className="font-semibold text-slate-900">
-        TSU WebApp
+      <Link href="/">
+        <Image src="/LOGO.jpg.jpeg" alt="TSU WebApp" width={160} height={27} className="h-6 w-auto" />
       </Link>
       <div className="flex items-center gap-3">
         <span className="text-slate-500">

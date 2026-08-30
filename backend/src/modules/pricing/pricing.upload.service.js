@@ -17,6 +17,7 @@ const HEADER_MAP = {
   'remarks for material': 'remarksForMaterial',
   'replacement part no': 'replacementPartNo',
   'val type for replacement part no': 'valTypeForReplacementPartNo',
+  remarks: 'valTypeForReplacementPartNo',
 };
 
 async function loadWorkbookRows(buffer, originalName) {

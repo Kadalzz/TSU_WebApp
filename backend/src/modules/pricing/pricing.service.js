@@ -157,7 +157,7 @@ async function buildExportWorkbook(results) {
     { header: 'Current SP', key: 'price', width: 14 },
     { header: 'Remarks for Material', key: 'remarksForMaterial', width: 30 },
     { header: 'Replacement Part No', key: 'replacementPartNo', width: 20 },
-    { header: 'Val Type for Replacement Part No', key: 'valTypeForReplacementPartNo', width: 26 },
+    { header: 'Remarks', key: 'valTypeForReplacementPartNo', width: 26 },
   ];
 
   results.forEach((r) =>

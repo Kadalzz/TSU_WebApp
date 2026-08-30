@@ -48,7 +48,7 @@ async function main() {
     { columnKey: 'price', displayLabel: 'Current SP', sortOrder: 8 },
     { columnKey: 'remarksForMaterial', displayLabel: 'Remarks for Material', sortOrder: 9 },
     { columnKey: 'replacementPartNo', displayLabel: 'Replacement Part No', sortOrder: 10 },
-    { columnKey: 'valTypeForReplacementPartNo', displayLabel: 'Val Type for Replacement Part No', sortOrder: 11 },
+    { columnKey: 'valTypeForReplacementPartNo', displayLabel: 'Remarks', sortOrder: 11 },
   ];
 
   await prisma.pricingColumnConfig.deleteMany({
