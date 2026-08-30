@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -7,7 +8,6 @@ import AuthGuard from '@/components/AuthGuard';
 import { logout as logoutApi } from '@/lib/api';
 
 const NAVY = '#0b3d8c';
-const GOLD = '#f5c518';
 
 function displayNameFromEmail(email) {
   const local = (email || '').split('@')[0];
@@ -18,12 +18,44 @@ function displayNameFromEmail(email) {
     .join(' ');
 }
 
-function AccentBar({ height = 'h-2' }) {
+function ProfileMenu({ user }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const displayName = displayNameFromEmail(user.email);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  async function handleLogout() {
+    await logoutApi();
+    router.push('/login');
+  }
+
   return (
-    <div className={`flex w-full overflow-hidden ${height}`}>
-      <div className="flex-[1.3]" style={{ backgroundColor: NAVY }} />
-      <div className="w-4" style={{ backgroundColor: NAVY, clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }} />
-      <div className="flex-1" style={{ backgroundColor: GOLD }} />
+    <div className="relative flex items-center gap-2" ref={ref}>
+      <span className="text-sm text-slate-700">Hi {displayName}, Selamat datang!</span>
+      <button onClick={() => setOpen((v) => !v)} className="rounded-full">
+        <Image src="/Profile symbol.svg" alt="Profil" width={32} height={32} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-10 z-20 w-56 rounded-lg border border-slate-200 bg-white p-4 text-sm shadow-lg">
+          <p className="font-semibold text-slate-900">{user.name}</p>
+          <p className="mt-0.5 break-all text-xs text-slate-500">{user.email}</p>
+          <button
+            onClick={handleLogout}
+            className="mt-3 w-full rounded border border-slate-300 px-3 py-1.5 text-xs font-medium hover:bg-slate-100"
+          >
+            Logout
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -42,41 +74,28 @@ function ModuleCard({ href, title, description }) {
         <h2 className="text-lg font-extrabold tracking-tight text-slate-900">{title}</h2>
         <p className="mt-1 flex-1 text-sm text-slate-500">{description}</p>
         <span
-          className="mt-3 inline-flex w-fit items-center gap-1 rounded px-3 py-1 text-xs font-semibold text-slate-900"
-          style={{ backgroundColor: GOLD }}
+          className="mt-3 inline-flex w-fit items-center gap-1 rounded bg-[#face0b] px-3 py-1 text-xs font-semibold text-slate-900"
         >
           View Detail ↗
         </span>
       </div>
-      <AccentBar />
+      <img src="/footer section svg.svg" alt="" className="block h-auto w-full" />
     </Link>
   );
 }
 
 function LandingContent({ user }) {
-  const router = useRouter();
   const canPricing = user.role === 'admin' || user.canAccessPricing;
   const canGps = user.role === 'admin' || user.canAccessGps;
   const isAdmin = user.role === 'admin';
-  const displayName = displayNameFromEmail(user.email);
-
-  async function handleLogout() {
-    await logoutApi();
-    router.push('/login');
-  }
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
-      <AccentBar />
+      <img src="/Header svg.svg" alt="" className="block h-auto w-full" />
 
       <header className="flex items-center justify-between bg-white px-6 py-3 shadow-sm">
         <Image src="/LOGO.jpg.jpeg" alt="SEM - Tri Swardana Utama" width={200} height={34} className="h-8 w-auto" priority />
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-700">Hi {displayName}, Selamat datang!</span>
-          <button onClick={handleLogout} title="Logout" className="rounded-full">
-            <Image src="/Profile symbol.svg" alt="Logout" width={32} height={32} />
-          </button>
-        </div>
+        <ProfileMenu user={user} />
       </header>
 
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
@@ -128,7 +147,7 @@ function LandingContent({ user }) {
         </p>
       </main>
 
-      <AccentBar height="h-10" />
+      <img src="/Header svg.svg" alt="" className="block h-auto w-full" />
     </div>
   );
 }
