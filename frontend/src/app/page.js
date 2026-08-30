@@ -38,25 +38,37 @@ function ProfileMenu({ user }) {
   }
 
   return (
-    <div className="relative flex items-center gap-2" ref={ref}>
-      <span className="text-sm text-slate-700">Hi {displayName}, Selamat datang!</span>
-      <button onClick={() => setOpen((v) => !v)} className="rounded-full">
-        <Image src="/Profile symbol.svg" alt="Profil" width={32} height={32} />
-      </button>
-
+    <>
       {open && (
-        <div className="absolute right-0 top-10 z-20 w-56 rounded-lg border border-slate-200 bg-white p-4 text-sm shadow-lg">
-          <p className="font-semibold text-slate-900">{user.name}</p>
-          <p className="mt-0.5 break-all text-xs text-slate-500">{user.email}</p>
-          <button
-            onClick={handleLogout}
-            className="mt-3 w-full rounded border border-slate-300 px-3 py-1.5 text-xs font-medium hover:bg-slate-100"
-          >
-            Logout
-          </button>
-        </div>
+        <div
+          className="fixed inset-0 z-30 bg-slate-900/40"
+          onClick={() => setOpen(false)}
+        />
       )}
-    </div>
+      <div className="relative z-40 flex items-center gap-2" ref={ref}>
+        <span className="text-sm text-slate-700">Hi {displayName}, Selamat datang!</span>
+        <button onClick={() => setOpen((v) => !v)} className="rounded-full">
+          <Image src="/Profile symbol.svg" alt="Profil" width={32} height={32} />
+        </button>
+
+        {open && (
+          <div className="absolute right-0 top-10 z-40 w-64 rounded-xl border border-slate-200 bg-white px-5 py-5 text-center shadow-xl">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center">
+              <Image src="/Profile symbol.svg" alt="" width={56} height={56} />
+            </div>
+            <p className="mt-3 text-sm font-bold text-slate-900">{user.name}</p>
+            <p className="mt-0.5 break-all text-xs text-slate-500">@{user.email}</p>
+            <button
+              onClick={handleLogout}
+              className="mt-4 rounded px-6 py-1.5 text-xs font-semibold text-slate-900 hover:brightness-95"
+              style={{ backgroundColor: '#f5c518' }}
+            >
+              Logout
+            </button>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

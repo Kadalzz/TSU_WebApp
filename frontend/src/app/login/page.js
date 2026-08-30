@@ -92,7 +92,14 @@ export default function LoginPage() {
             A Subsidiary of <span className="font-bold" style={{ color: NAVY }}>Trakindo Utama</span>
           </p>
 
-          <img src="/footer section svg.svg" alt="" className="-mx-8 -mb-10 block h-auto w-[calc(100%+4rem)]" />
+          <div
+            className="-mx-8 -mb-10 h-12 w-[calc(100%+4rem)]"
+            style={{
+              backgroundImage: 'url(/footer%20section%20svg.svg)',
+              backgroundSize: '100% 100%',
+              backgroundRepeat: 'no-repeat',
+            }}
+          />
         </form>
       </div>
     </div>

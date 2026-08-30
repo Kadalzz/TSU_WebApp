@@ -304,8 +304,13 @@ function buildFilterWhere({ month, salesName, customer, modelId, subModelId, sal
   return where;
 }
 
+const INDONESIAN_MONTHS = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+];
+
 async function getFilterOptions() {
-  const [salesNames, customers, salesAreas, models] = await Promise.all([
+  const [salesNames, customers, salesAreas, models, invoiceDates] = await Promise.all([
     prisma.salesGpsTransaction.findMany({
       where: { uploadVersion: { isActiveVersion: true } },
       select: { salesName: true },
@@ -325,13 +330,29 @@ async function getFilterOptions() {
       orderBy: { salesArea: 'asc' },
     }),
     getModels(),
+    prisma.salesGpsTransaction.findMany({
+      where: { uploadVersion: { isActiveVersion: true } },
+      select: { invoiceDate: true },
+    }),
   ]);
+
+  // Month options are derived from the actual invoice dates present in the
+  // uploaded data (not the calendar's current year) — the data can be from
+  // any past year, so a hardcoded "this year" list would always match zero rows.
+  const monthKeys = new Set(
+    invoiceDates.map((t) => `${t.invoiceDate.getUTCFullYear()}-${String(t.invoiceDate.getUTCMonth() + 1).padStart(2, '0')}`)
+  );
+  const months = [...monthKeys].sort().map((key) => {
+    const [year, m] = key.split('-').map(Number);
+    return { value: key, label: `${INDONESIAN_MONTHS[m - 1]} ${year}` };
+  });
 
   return {
     salesNames: salesNames.map((s) => s.salesName),
     customers: customers.map((c) => c.customerName),
     salesAreas: salesAreas.map((s) => s.salesArea),
     models,
+    months,
   };
 }
 

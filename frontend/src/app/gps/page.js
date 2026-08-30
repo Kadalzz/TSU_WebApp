@@ -19,19 +19,6 @@ import {
   getFeatureFlags,
 } from '@/lib/api';
 
-const MONTH_NAMES = [
-  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-];
-
-function currentYearMonthOptions() {
-  const year = new Date().getFullYear();
-  return MONTH_NAMES.map((name, idx) => ({
-    value: `${year}-${String(idx + 1).padStart(2, '0')}`,
-    label: name,
-  }));
-}
-
 function formatCurrency(value) {
   return Number(value || 0).toLocaleString('id-ID');
 }
@@ -45,7 +32,7 @@ function formatPercentOrDash(value) {
 }
 
 function GpsPageContent({ user }) {
-  const [filterOptions, setFilterOptions] = useState({ salesNames: [], customers: [], salesAreas: [], models: [] });
+  const [filterOptions, setFilterOptions] = useState({ salesNames: [], customers: [], salesAreas: [], models: [], months: [] });
   const [filters, setFilters] = useState({ month: '', salesName: '', customer: '', modelId: '', subModelId: '', salesArea: '' });
   const [summary, setSummary] = useState([]);
   const [ranking, setRanking] = useState([]);
@@ -55,8 +42,6 @@ function GpsPageContent({ user }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [exportEnabled, setExportEnabled] = useState(true);
-
-  const monthOptions = useMemo(() => currentYearMonthOptions(), []);
 
   const subModelsForFilter = useMemo(() => {
     if (!filters.modelId) return [];
@@ -140,7 +125,7 @@ function GpsPageContent({ user }) {
           className="rounded border border-slate-300 px-2 py-1.5 text-sm"
         >
           <option value="">All Month</option>
-          {monthOptions.map((m) => (
+          {filterOptions.months.map((m) => (
             <option key={m.value} value={m.value}>{m.label}</option>
           ))}
         </select>
