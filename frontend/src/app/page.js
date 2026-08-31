@@ -14,7 +14,7 @@ function ModuleCard({ href, title, description, photo }) {
       className="flex flex-col overflow-hidden rounded-xl bg-white shadow-[0_8px_30px_rgba(11,61,140,0.15)] transition hover:shadow-[0_12px_40px_rgba(11,61,140,0.25)]"
     >
       <div className="relative h-48 w-full overflow-hidden">
-        <Image src={photo} alt="" fill className="object-cover object-bottom" />
+        <Image src={photo} alt="" fill className="object-cover" />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent" />
       </div>
       <div className="flex flex-1 flex-col px-5 pb-4 pt-3">
