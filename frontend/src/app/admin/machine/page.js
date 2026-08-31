@@ -17,6 +17,7 @@ function AdminMachineContent() {
   const [uploadSummary, setUploadSummary] = useState(null);
   const [uploads, setUploads] = useState([]);
   const [error, setError] = useState('');
+  const [busyId, setBusyId] = useState(null);
 
   const refreshUploads = useCallback(() => {
     listMachineUploads().then((data) => setUploads(data.uploads)).catch((err) => setError(err.message));
@@ -57,22 +58,30 @@ function AdminMachineContent() {
   }
 
   async function handleRollback(id) {
+    if (busyId) return;
     setError('');
+    setBusyId(id);
     try {
       await rollbackMachineUpload(id);
       refreshUploads();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusyId(null);
     }
   }
 
   async function handleDelete(id) {
+    if (busyId) return;
     setError('');
+    setBusyId(id);
     try {
       await deleteMachineUpload(id);
       refreshUploads();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -183,13 +192,15 @@ function AdminMachineContent() {
                         <>
                           <button
                             onClick={() => handleRollback(u.id)}
-                            className="text-xs text-slate-600 underline underline-offset-2"
+                            disabled={busyId !== null}
+                            className="text-xs text-slate-600 underline underline-offset-2 disabled:opacity-40"
                           >
                             Rollback
                           </button>
                           <button
                             onClick={() => handleDelete(u.id)}
-                            className="text-xs text-red-600 underline underline-offset-2"
+                            disabled={busyId !== null}
+                            className="text-xs text-red-600 underline underline-offset-2 disabled:opacity-40"
                           >
                             Hapus
                           </button>

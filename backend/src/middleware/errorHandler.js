@@ -5,7 +5,11 @@ function notFoundHandler(req, res) {
 function errorHandler(err, req, res, next) {
   console.error(err);
   const status = err.status || 500;
-  res.status(status).json({ message: err.message || 'Internal server error' });
+  // Only errors we deliberately threw (with .status set) carry a message
+  // that's safe to show a user — an unexpected 500 (e.g. a raw Prisma/DB
+  // error) is logged above but never echoed to the client verbatim.
+  const message = err.status ? err.message : 'Terjadi kesalahan pada server. Silakan coba lagi.';
+  res.status(status).json({ message });
 }
 
 module.exports = { notFoundHandler, errorHandler };

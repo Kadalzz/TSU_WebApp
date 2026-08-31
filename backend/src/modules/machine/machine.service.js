@@ -1,6 +1,15 @@
 const ExcelJS = require('exceljs');
+const { Prisma } = require('@prisma/client');
 const prisma = require('../../config/db');
 const { loadWorkbookRows, validateRow } = require('./machine.upload.service');
+
+// Two clicks on Hapus/Rollback in quick succession can both pass the
+// existence check before either write lands — Prisma's "record not found"
+// (P2025) on the second one is expected, not a bug, so surface it as a
+// normal 404 instead of leaking the raw ORM error to the client.
+function isRecordNotFoundError(err) {
+  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025';
+}
 
 async function processUpload(file, userId) {
   const rows = await loadWorkbookRows(file.buffer, file.originalname);
@@ -67,10 +76,19 @@ async function rollbackToVersion(uploadId) {
     throw err;
   }
 
-  await prisma.$transaction([
-    prisma.machineUploadHistory.updateMany({ data: { isActiveVersion: false }, where: {} }),
-    prisma.machineUploadHistory.update({ where: { id: uploadId }, data: { isActiveVersion: true } }),
-  ]);
+  try {
+    await prisma.$transaction([
+      prisma.machineUploadHistory.updateMany({ data: { isActiveVersion: false }, where: {} }),
+      prisma.machineUploadHistory.update({ where: { id: uploadId }, data: { isActiveVersion: true } }),
+    ]);
+  } catch (err) {
+    if (isRecordNotFoundError(err)) {
+      const e = new Error('Versi ini sudah tidak ada (mungkin sudah dihapus/diubah di tab lain)');
+      e.status = 404;
+      throw e;
+    }
+    throw err;
+  }
 
   return target;
 }
@@ -88,8 +106,17 @@ async function deleteUploadVersion(uploadId) {
     throw err;
   }
 
-  await prisma.machineMaster.deleteMany({ where: { uploadVersionId: uploadId } });
-  await prisma.machineUploadHistory.delete({ where: { id: uploadId } });
+  try {
+    await prisma.machineMaster.deleteMany({ where: { uploadVersionId: uploadId } });
+    await prisma.machineUploadHistory.delete({ where: { id: uploadId } });
+  } catch (err) {
+    if (isRecordNotFoundError(err)) {
+      const e = new Error('Versi ini sudah dihapus sebelumnya');
+      e.status = 404;
+      throw e;
+    }
+    throw err;
+  }
 }
 
 async function getErrorLogWorkbook(uploadId) {

@@ -26,6 +26,7 @@ function AdminGpsContent() {
   const [newSubModel, setNewSubModel] = useState({}); // { [modelId]: { name, targetGpPercent } }
   const [assignChoice, setAssignChoice] = useState({}); // { [materialNo]: subModelId }
   const [error, setError] = useState('');
+  const [busyId, setBusyId] = useState(null);
 
   const refreshAll = useCallback(() => {
     listGpsUploads().then((d) => setUploads(d.uploads)).catch((e) => setError(e.message));
@@ -68,22 +69,30 @@ function AdminGpsContent() {
   }
 
   async function handleRollback(id) {
+    if (busyId) return;
     setError('');
+    setBusyId(id);
     try {
       await rollbackGpsUpload(id);
       refreshAll();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusyId(null);
     }
   }
 
   async function handleDelete(id) {
+    if (busyId) return;
     setError('');
+    setBusyId(id);
     try {
       await deleteGpsUpload(id);
       refreshAll();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -320,10 +329,10 @@ function AdminGpsContent() {
                     )}
                     {!u.isActiveVersion && (
                       <>
-                        <button onClick={() => handleRollback(u.id)} className="text-xs text-slate-600 underline underline-offset-2">
+                        <button onClick={() => handleRollback(u.id)} disabled={busyId !== null} className="text-xs text-slate-600 underline underline-offset-2 disabled:opacity-40">
                           Rollback
                         </button>
-                        <button onClick={() => handleDelete(u.id)} className="text-xs text-red-600 underline underline-offset-2">
+                        <button onClick={() => handleDelete(u.id)} disabled={busyId !== null} className="text-xs text-red-600 underline underline-offset-2 disabled:opacity-40">
                           Hapus
                         </button>
                       </>
