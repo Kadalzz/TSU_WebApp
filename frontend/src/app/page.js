@@ -1,100 +1,20 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
-import { logout as logoutApi } from '@/lib/api';
+import { AccentBar, ProfileMenu } from '@/components/PageChrome';
 
 const NAVY = '#0b3d8c';
 
-function displayNameFromEmail(email) {
-  const local = (email || '').split('@')[0];
-  return local
-    .split(/[._-]/)
-    .filter(Boolean)
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-    .join(' ');
-}
-
-function ProfileMenu({ user }) {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  const displayName = displayNameFromEmail(user.email);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  async function handleLogout() {
-    await logoutApi();
-    router.push('/login');
-  }
-
-  return (
-    <>
-      {open && (
-        <div
-          className="fixed inset-0 z-30 bg-slate-900/40"
-          onClick={() => setOpen(false)}
-        />
-      )}
-      <div className="relative z-40 flex items-center gap-2" ref={ref}>
-        <span className="text-sm text-slate-700">Hi {displayName}, Selamat datang!</span>
-        <button onClick={() => setOpen((v) => !v)} className="rounded-full">
-          <Image src="/Profile symbol.svg" alt="Profil" width={32} height={32} />
-        </button>
-
-        {open && (
-          <div className="absolute right-0 top-10 z-40 w-64 rounded-xl border border-slate-200 bg-white px-5 py-5 text-center shadow-xl">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center">
-              <Image src="/Profile symbol.svg" alt="" width={56} height={56} />
-            </div>
-            <p className="mt-3 text-sm font-bold text-slate-900">{user.name}</p>
-            <p className="mt-0.5 break-all text-xs text-slate-500">@{user.email}</p>
-            <button
-              onClick={handleLogout}
-              className="mt-4 rounded px-6 py-1.5 text-xs font-semibold text-slate-900 hover:brightness-95"
-              style={{ backgroundColor: '#f5c518' }}
-            >
-              Logout
-            </button>
-          </div>
-        )}
-      </div>
-    </>
-  );
-}
-
-// Stretched independently of the SVG's native (very thin) aspect ratio via a
-// CSS background instead of <img>, so it reads as a proper band, not a hairline.
-function PageAccentBar({ className }) {
-  return (
-    <div
-      className={className}
-      style={{
-        backgroundImage: 'url(/Header%20svg.svg)',
-        backgroundSize: '100% 100%',
-        backgroundRepeat: 'no-repeat',
-      }}
-    />
-  );
-}
-
-function ModuleCard({ href, title, description }) {
+function ModuleCard({ href, title, description, photo }) {
   return (
     <Link
       href={href}
       className="flex flex-col overflow-hidden rounded-xl bg-white shadow-[0_8px_30px_rgba(11,61,140,0.15)] transition hover:shadow-[0_12px_40px_rgba(11,61,140,0.25)]"
     >
       <div className="relative h-48 w-full overflow-hidden">
-        <Image src="/equipment-photo.jpg" alt="" fill className="object-cover" />
+        <Image src={photo} alt="" fill className="object-cover object-bottom" />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent" />
       </div>
       <div className="flex flex-1 flex-col px-5 pb-4 pt-3">
@@ -118,7 +38,7 @@ function LandingContent({ user }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
-      <PageAccentBar className="h-4 w-full" />
+      <AccentBar src="/Header%20svg.svg" className="h-4 w-full" />
 
       <header className="flex items-center justify-between bg-white px-6 py-3 shadow-sm">
         <Image src="/LOGO.jpg.jpeg" alt="SEM - Tri Swardana Utama" width={200} height={34} className="h-8 w-auto" priority />
@@ -135,6 +55,7 @@ function LandingContent({ user }) {
             <ModuleCard
               href="/pricing"
               title="PRICING MASTER"
+              photo="/parts-photo.jpg"
               description={
                 isAdmin
                   ? 'Upload master pricing, atur kolom, riwayat dan rollback.'
@@ -146,6 +67,7 @@ function LandingContent({ user }) {
             <ModuleCard
               href="/gps"
               title="SALES GPS"
+              photo="/gps-machine-photo.jpg"
               description={
                 isAdmin
                   ? 'Upload transaksi, kelola sub model dan target GP%, dan riwayat.'
@@ -174,7 +96,7 @@ function LandingContent({ user }) {
         </p>
       </main>
 
-      <PageAccentBar className="h-12 w-full" />
+      <AccentBar src="/Header%20svg.svg" className="h-12 w-full" />
     </div>
   );
 }

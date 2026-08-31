@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
+import PageChrome from '@/components/PageChrome';
+import ExcelExportButton from '@/components/ExcelExportButton';
 import SalesRankingChart, {
   MARGIN_CATEGORY_COLORS,
   MARGIN_CATEGORY_LABELS,
@@ -33,6 +35,26 @@ const MONTH_NAMES = [
   { value: '11', label: 'November' },
   { value: '12', label: 'Desember' },
 ];
+
+const NAVY = '#0b3d8c';
+
+function NavySelect({ value, onChange, disabled, children }) {
+  return (
+    <div className="relative flex-1 min-w-[120px]">
+      <select
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        className="w-full appearance-none bg-transparent px-4 py-2.5 text-sm text-white outline-none disabled:opacity-40 [&>option]:text-slate-900"
+      >
+        {children}
+      </select>
+      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-white/70">
+        &#9662;
+      </span>
+    </div>
+  );
+}
 
 function formatCurrency(value) {
   return Number(value || 0).toLocaleString('id-ID');
@@ -132,7 +154,8 @@ function GpsPageContent({ user }) {
   }, [search]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <PageChrome accentSrc="/gps-header-footer.svg" user={user}>
+      <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="mb-6 flex items-center justify-between no-print">
         <div>
           <h1 className="text-2xl font-semibold">Sales GPS</h1>
@@ -151,78 +174,56 @@ function GpsPageContent({ user }) {
       </div>
 
       {/* Filters */}
-      <div className="mb-6 grid grid-cols-2 gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-3 lg:grid-cols-7 no-print">
-        <select
-          value={filters.year}
-          onChange={(e) => setFilters((f) => ({ ...f, year: e.target.value, monthNum: '' }))}
-          className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-        >
+      <div
+        className="mb-6 flex flex-wrap divide-y divide-white/20 overflow-hidden rounded-lg shadow-sm no-print sm:divide-x sm:divide-y-0"
+        style={{ backgroundColor: NAVY }}
+      >
+        <NavySelect value={filters.year} onChange={(e) => setFilters((f) => ({ ...f, year: e.target.value, monthNum: '' }))}>
           <option value="">All Year</option>
           {filterOptions.years.map((y) => (
             <option key={y} value={y}>{y}</option>
           ))}
-        </select>
-        <select
+        </NavySelect>
+        <NavySelect
           value={filters.monthNum}
           onChange={(e) => setFilters((f) => ({ ...f, monthNum: e.target.value }))}
           disabled={!filters.year}
-          className="rounded border border-slate-300 px-2 py-1.5 text-sm disabled:opacity-50"
         >
           <option value="">All Month</option>
           {MONTH_NAMES.map((m) => (
             <option key={m.value} value={m.value}>{m.label}</option>
           ))}
-        </select>
-        <select
-          value={filters.salesName}
-          onChange={(e) => setFilters((f) => ({ ...f, salesName: e.target.value }))}
-          className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-        >
+        </NavySelect>
+        <NavySelect value={filters.salesName} onChange={(e) => setFilters((f) => ({ ...f, salesName: e.target.value }))}>
           <option value="">All Sales</option>
           {filterOptions.salesNames.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
-        </select>
-        <select
-          value={filters.customer}
-          onChange={(e) => setFilters((f) => ({ ...f, customer: e.target.value }))}
-          className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-        >
+        </NavySelect>
+        <NavySelect value={filters.customer} onChange={(e) => setFilters((f) => ({ ...f, customer: e.target.value }))}>
           <option value="">All Customer</option>
           {filterOptions.customers.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
-        </select>
-        <select
-          value={filters.modelId}
-          onChange={(e) => setFilters((f) => ({ ...f, modelId: e.target.value }))}
-          className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-        >
+        </NavySelect>
+        <NavySelect value={filters.modelId} onChange={(e) => setFilters((f) => ({ ...f, modelId: e.target.value }))}>
           <option value="">All Model</option>
           {filterOptions.models.map((m) => (
             <option key={m.id} value={m.id}>{m.name}</option>
           ))}
-        </select>
-        <select
-          value={filters.subModelId}
-          onChange={(e) => setFilters((f) => ({ ...f, subModelId: e.target.value }))}
-          className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-        >
+        </NavySelect>
+        <NavySelect value={filters.subModelId} onChange={(e) => setFilters((f) => ({ ...f, subModelId: e.target.value }))}>
           <option value="">All Kategori</option>
           {subModelsForFilter.map((sm) => (
             <option key={sm.id} value={sm.id}>{sm.modelName} — {sm.name}</option>
           ))}
-        </select>
-        <select
-          value={filters.salesArea}
-          onChange={(e) => setFilters((f) => ({ ...f, salesArea: e.target.value }))}
-          className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-        >
+        </NavySelect>
+        <NavySelect value={filters.salesArea} onChange={(e) => setFilters((f) => ({ ...f, salesArea: e.target.value }))}>
           <option value="">All Sales Area</option>
           {filterOptions.salesAreas.map((a) => (
             <option key={a} value={a}>{a}</option>
           ))}
-        </select>
+        </NavySelect>
       </div>
 
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
@@ -271,14 +272,7 @@ function GpsPageContent({ user }) {
       <section className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-3 flex items-center justify-between no-print">
           <h2 className="font-medium">Sales Ranking</h2>
-          {canExport && (
-            <button
-              onClick={() => exportGpsRanking(apiFilters)}
-              className="rounded border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100"
-            >
-              Export Excel
-            </button>
-          )}
+          {canExport && <ExcelExportButton onClick={() => exportGpsRanking(apiFilters)} />}
         </div>
         <SalesRankingChart data={ranking} />
       </section>
@@ -296,12 +290,7 @@ function GpsPageContent({ user }) {
               className="rounded border border-slate-300 px-3 py-1.5 text-sm"
             />
             {canExport && (
-              <button
-                onClick={() => exportGpsTransactions({ ...apiFilters, search: search || undefined })}
-                className="rounded border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100"
-              >
-                Export Excel
-              </button>
+              <ExcelExportButton onClick={() => exportGpsTransactions({ ...apiFilters, search: search || undefined })} />
             )}
           </div>
         </div>
@@ -357,7 +346,8 @@ function GpsPageContent({ user }) {
           </table>
         </div>
       </section>
-    </div>
+      </div>
+    </PageChrome>
   );
 }
 
@@ -371,5 +361,9 @@ function KpiCard({ label, value }) {
 }
 
 export default function GpsPage() {
-  return <AuthGuard requireModule="gps">{(user) => <GpsPageContent user={user} />}</AuthGuard>;
+  return (
+    <AuthGuard requireModule="gps" hideTopBar>
+      {(user) => <GpsPageContent user={user} />}
+    </AuthGuard>
+  );
 }

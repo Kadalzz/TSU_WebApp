@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 105 105">
+  <defs>
+    <filter id="outer-glow-1" x="0" y="0" width="105" height="105" filterUnits="userSpaceOnUse">
+      <feOffset dx="0" dy="0"/>
+      <feGaussianBlur result="blur" stdDeviation="3"/>
+      <feFlood flood-color="#000" flood-opacity=".5"/>
+      <feComposite in2="blur" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g>
+      <circle cx="52.29" cy="52.74" r="40.82" fill="#003b83" filter="url(#outer-glow-1)" stroke="#fff" stroke-miterlimit="10" stroke-width="4"/>
+      <circle cx="52.29" cy="41.78" r="13.49" fill="#face0b"/>
+      <path d="M71.3,89.92l-3.82,1.38c-1.92.37-4.15,1.75-13.82,2.26-7.91.42-12.74-1.18-14.65-1.52l-4.41-1.59v-16.23c0-7.9,8.22-14.3,18.35-14.3h0c10.14,0,18.35,6.4,18.35,14.3v15.71Z" fill="#face0b"/>
+    </g>
+    <circle cx="52.29" cy="52.74" r="40.82" fill="none" stroke="#fff" stroke-miterlimit="10" stroke-width="4"/>
+  </g>
+</svg>

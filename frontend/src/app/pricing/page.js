@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
+import PageChrome from '@/components/PageChrome';
+import ExcelExportButton from '@/components/ExcelExportButton';
 import {
   searchPricing,
   exportPricing,
@@ -12,6 +14,10 @@ import {
   exportMachine,
   getFeatureFlags,
 } from '@/lib/api';
+
+const NAVY = '#0b3d8c';
+const GOLD = '#f5c518';
+const RED = '#dc2626';
 
 function formatCellValue(columnKey, value) {
   if (value === null || value === undefined || value === '') return '-';
@@ -27,6 +33,8 @@ function formatCellValue(columnKey, value) {
 
 // Negotiation approval routing (Parts): how big is the gap between Current SP
 // and the price Sales wants to offer, as a % of Current SP (either direction).
+// Colors follow the 3-tier escalation scheme: navy (routine) -> gold (caution)
+// -> red (most senior approval needed).
 function computeNegotiationAction(currentSP, customPrice) {
   const current = Number(currentSP);
   const custom = Number(customPrice);
@@ -34,12 +42,12 @@ function computeNegotiationAction(currentSP, customPrice) {
 
   const diffPercent = Math.abs((current - custom) / current) * 100;
   if (diffPercent <= 5) {
-    return { label: 'Approval Product Support Manager', diffPercent, color: '#16a34a' };
+    return { label: 'Approval Product Support Manager', diffPercent, bg: NAVY, fg: '#fff' };
   }
   if (diffPercent < 15) {
-    return { label: 'Need Approval Marketing', diffPercent, color: '#d97706' };
+    return { label: 'Need Approval Marketing', diffPercent, bg: GOLD, fg: '#1c1917' };
   }
-  return { label: 'Approval Director', diffPercent, color: '#dc2626' };
+  return { label: 'Approval Director', diffPercent, bg: RED, fg: '#fff' };
 }
 
 // Negotiation approval routing (Machine) — exact formula from supervisor:
@@ -53,12 +61,12 @@ function computeMachineNegotiationAction(currentSP, customPrice) {
 
   const diffPercent = ((current - custom) / current) * 100;
   if (diffPercent < 5) {
-    return { label: 'Approval Sales Manager', diffPercent, color: '#16a34a' };
+    return { label: 'Approval Sales Manager', diffPercent, bg: NAVY, fg: '#fff' };
   }
   if (diffPercent < 5.5) {
-    return { label: 'Approval National Sales Manager', diffPercent, color: '#d97706' };
+    return { label: 'Approval National Sales Manager', diffPercent, bg: GOLD, fg: '#1c1917' };
   }
-  return { label: 'Approval Marketing / Director', diffPercent, color: '#dc2626' };
+  return { label: 'Approval Marketing / Director', diffPercent, bg: RED, fg: '#fff' };
 }
 
 function KpiCard({ label, value }) {
@@ -67,6 +75,44 @@ function KpiCard({ label, value }) {
       <p className="text-xs text-slate-500">{label}</p>
       <p className="mt-1 text-xl font-semibold">{value}</p>
     </div>
+  );
+}
+
+function GetPriceButton({ onClick, disabled, children }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="rounded px-4 py-2 text-sm font-semibold text-slate-900 hover:brightness-95 disabled:opacity-50"
+      style={{ backgroundColor: GOLD }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function NegotiationButton({ active, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="rounded px-4 py-2 text-sm font-semibold hover:brightness-95"
+      style={active ? { backgroundColor: NAVY, color: '#fff' } : { backgroundColor: GOLD, color: '#1c1917' }}
+    >
+      Negotiation
+    </button>
+  );
+}
+
+function ActionBadge({ action, referenceLabel }) {
+  if (!action) return <span className="text-slate-400">-</span>;
+  return (
+    <span
+      className="inline-block rounded px-2 py-0.5 text-xs font-medium"
+      style={{ backgroundColor: action.bg, color: action.fg }}
+      title={`Selisih ${action.diffPercent.toFixed(1)}% dari ${referenceLabel}`}
+    >
+      {action.label}
+    </span>
   );
 }
 
@@ -153,33 +199,14 @@ function PartsTab({ user }) {
       </div>
 
       <div className="mb-6 flex items-center gap-3">
-        <button
-          onClick={handleGetPrice}
-          disabled={loading}
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
-        >
+        <GetPriceButton onClick={handleGetPrice} disabled={loading}>
           {loading ? 'Mencari...' : `GET PRICE (${materialNumbers.length})`}
-        </button>
+        </GetPriceButton>
         {canExport && (
-          <button
-            onClick={handleExport}
-            disabled={materialNumbers.length === 0}
-            className="rounded border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 disabled:opacity-50"
-          >
-            EXPORT EXCEL
-          </button>
+          <ExcelExportButton onClick={handleExport} disabled={materialNumbers.length === 0} />
         )}
         {results.length > 0 && (
-          <button
-            onClick={() => setNegotiationMode((v) => !v)}
-            className={`rounded border px-4 py-2 text-sm font-medium ${
-              negotiationMode
-                ? 'border-slate-900 bg-slate-900 text-white'
-                : 'border-slate-300 hover:bg-slate-100'
-            }`}
-          >
-            Negotiation
-          </button>
+          <NegotiationButton active={negotiationMode} onClick={() => setNegotiationMode((v) => !v)} />
         )}
         {meta && (
           <span className="text-xs text-slate-500">
@@ -193,17 +220,17 @@ function PartsTab({ user }) {
       {results.length > 0 && (
         <div className="mb-6 overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
           <table className="w-full text-sm">
-            <thead className="bg-slate-100">
+            <thead style={{ backgroundColor: NAVY }}>
               <tr>
                 {columns.map((c) => (
-                  <th key={c.columnKey} className="px-3 py-2 text-left font-medium">
+                  <th key={c.columnKey} className="px-3 py-2 text-left font-medium text-white">
                     {c.displayLabel}
                   </th>
                 ))}
                 {negotiationMode && (
                   <>
-                    <th className="px-3 py-2 text-left font-medium">Custom Price</th>
-                    <th className="px-3 py-2 text-left font-medium">Action</th>
+                    <th className="px-3 py-2 text-left font-medium text-white">Custom Price</th>
+                    <th className="px-3 py-2 text-left font-medium text-white">Action</th>
                   </>
                 )}
               </tr>
@@ -216,7 +243,7 @@ function PartsTab({ user }) {
                 return (
                   <tr key={r.id} className="border-t border-slate-100">
                     {columns.map((c) => (
-                      <td key={c.columnKey} className="px-3 py-2">
+                      <td key={c.columnKey} className="px-3 py-2 font-light">
                         {formatCellValue(c.columnKey, r[c.columnKey])}
                       </td>
                     ))}
@@ -235,17 +262,7 @@ function PartsTab({ user }) {
                           />
                         </td>
                         <td className="px-3 py-2">
-                          {action ? (
-                            <span
-                              className="inline-block rounded px-2 py-0.5 text-xs font-medium text-white"
-                              style={{ backgroundColor: action.color }}
-                              title={`Selisih ${action.diffPercent.toFixed(1)}% dari Current SP`}
-                            >
-                              {action.label}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400">-</span>
-                          )}
+                          <ActionBadge action={action} referenceLabel="Current SP" />
                         </td>
                       </>
                     )}
@@ -354,33 +371,14 @@ function MachineTab({ user }) {
       </div>
 
       <div className="mb-6 flex items-center gap-3">
-        <button
-          onClick={handleGetPrice}
-          disabled={loading}
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
-        >
+        <GetPriceButton onClick={handleGetPrice} disabled={loading}>
           {loading ? 'Mencari...' : `GET PRICE (${materialNumbers.length})`}
-        </button>
+        </GetPriceButton>
         {canExport && (
-          <button
-            onClick={handleExport}
-            disabled={materialNumbers.length === 0}
-            className="rounded border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 disabled:opacity-50"
-          >
-            EXPORT EXCEL
-          </button>
+          <ExcelExportButton onClick={handleExport} disabled={materialNumbers.length === 0} />
         )}
         {results.length > 0 && (
-          <button
-            onClick={() => setNegotiationMode((v) => !v)}
-            className={`rounded border px-4 py-2 text-sm font-medium ${
-              negotiationMode
-                ? 'border-slate-900 bg-slate-900 text-white'
-                : 'border-slate-300 hover:bg-slate-100'
-            }`}
-          >
-            Negotiation
-          </button>
+          <NegotiationButton active={negotiationMode} onClick={() => setNegotiationMode((v) => !v)} />
         )}
         {meta && (
           <span className="text-xs text-slate-500">
@@ -394,16 +392,16 @@ function MachineTab({ user }) {
       {results.length > 0 && (
         <div className="mb-6 overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
           <table className="w-full text-sm">
-            <thead className="bg-slate-100">
+            <thead style={{ backgroundColor: NAVY }}>
               <tr>
-                <th className="px-3 py-2 text-left font-medium">Material</th>
-                <th className="px-3 py-2 text-left font-medium">Description</th>
-                {isAdmin && <th className="px-3 py-2 text-left font-medium">COGS</th>}
-                <th className="px-3 py-2 text-left font-medium">Selling Price</th>
+                <th className="px-3 py-2 text-left font-medium text-white">Material</th>
+                <th className="px-3 py-2 text-left font-medium text-white">Description</th>
+                {isAdmin && <th className="px-3 py-2 text-left font-medium text-white">COGS</th>}
+                <th className="px-3 py-2 text-left font-medium text-white">Selling Price</th>
                 {negotiationMode && (
                   <>
-                    <th className="px-3 py-2 text-left font-medium">Custom Price</th>
-                    <th className="px-3 py-2 text-left font-medium">Action</th>
+                    <th className="px-3 py-2 text-left font-medium text-white">Custom Price</th>
+                    <th className="px-3 py-2 text-left font-medium text-white">Action</th>
                   </>
                 )}
               </tr>
@@ -415,14 +413,14 @@ function MachineTab({ user }) {
                   : null;
                 return (
                   <tr key={r.id} className="border-t border-slate-100">
-                    <td className="px-3 py-2">{r.materialNumber}</td>
-                    <td className="px-3 py-2">{r.description || '-'}</td>
+                    <td className="px-3 py-2 font-light">{r.materialNumber}</td>
+                    <td className="px-3 py-2 font-light">{r.description || '-'}</td>
                     {isAdmin && (
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2 font-light">
                         {r.cogs === null || r.cogs === undefined ? '-' : Number(r.cogs).toLocaleString('id-ID')}
                       </td>
                     )}
-                    <td className="px-3 py-2">{Number(r.price).toLocaleString('id-ID')}</td>
+                    <td className="px-3 py-2 font-light">{Number(r.price).toLocaleString('id-ID')}</td>
                     {negotiationMode && (
                       <>
                         <td className="px-3 py-2">
@@ -438,17 +436,7 @@ function MachineTab({ user }) {
                           />
                         </td>
                         <td className="px-3 py-2">
-                          {action ? (
-                            <span
-                              className="inline-block rounded px-2 py-0.5 text-xs font-medium text-white"
-                              style={{ backgroundColor: action.color }}
-                              title={`Selisih ${action.diffPercent.toFixed(1)}% dari Selling Price`}
-                            >
-                              {action.label}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400">-</span>
-                          )}
+                          <ActionBadge action={action} referenceLabel="Selling Price" />
                         </td>
                       </>
                     )}
@@ -474,41 +462,48 @@ function PricingPageContent({ user }) {
   const [tab, setTab] = useState('parts');
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Smart Parts Pricing Assistant</h1>
-          <p className="text-sm text-slate-500">Cari harga spare part & machine secara massal</p>
+    <PageChrome accentSrc="/pricing-header-footer.svg" user={user}>
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Smart Parts Pricing Assistant</h1>
+            <p className="text-sm text-slate-500">Cari harga spare part & machine secara massal</p>
+          </div>
+          <Link href="/" className="text-sm text-slate-500 underline underline-offset-2">
+            &larr; Kembali
+          </Link>
         </div>
-        <Link href="/" className="text-sm text-slate-500 underline underline-offset-2">
-          &larr; Kembali
-        </Link>
-      </div>
 
-      <div className="mb-6 flex gap-2 border-b border-slate-200">
-        {[
-          { key: 'parts', label: '1. Parts' },
-          { key: 'machine', label: '2. Machine' },
-        ].map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
-              tab === t.key
-                ? 'border-slate-900 text-slate-900'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+        <div className="mb-6 flex items-center overflow-hidden rounded-lg" style={{ backgroundColor: GOLD }}>
+          {[
+            { key: 'parts', label: '1. Parts' },
+            { key: 'machine', label: '2. Machine' },
+          ].map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className="px-6 py-2.5 text-sm font-semibold transition"
+              style={
+                tab === t.key
+                  ? { backgroundColor: NAVY, color: '#fff' }
+                  : { color: '#1c1917' }
+              }
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
 
-      {tab === 'parts' ? <PartsTab user={user} /> : <MachineTab user={user} />}
-    </div>
+        {tab === 'parts' ? <PartsTab user={user} /> : <MachineTab user={user} />}
+      </div>
+    </PageChrome>
   );
 }
 
 export default function PricingPage() {
-  return <AuthGuard requireModule="pricing">{(user) => <PricingPageContent user={user} />}</AuthGuard>;
+  return (
+    <AuthGuard requireModule="pricing" hideTopBar>
+      {(user) => <PricingPageContent user={user} />}
+    </AuthGuard>
+  );
 }
