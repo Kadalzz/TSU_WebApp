@@ -38,7 +38,15 @@ function AdminGpsContent() {
   }, [refreshAll]);
 
   async function handleFile(file) {
-    if (!file) return;
+    if (!file) {
+      setError('Tidak ada file yang terdeteksi. Coba klik "Pilih File" dan pilih ulang.');
+      return;
+    }
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (!['xlsx', 'csv'].includes(ext)) {
+      setError(`Format ".${ext}" tidak didukung. Gunakan .xlsx atau .csv (file .xls lama harus dikonversi ke .xlsx dulu).`);
+      return;
+    }
     setError('');
     setUploading(true);
     setUploadSummary(null);
