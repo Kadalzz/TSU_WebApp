@@ -8,6 +8,8 @@ import {
   exportPricing,
   getPricingColumns,
   getPricingKpi,
+  searchMachine,
+  exportMachine,
   getFeatureFlags,
 } from '@/lib/api';
 
@@ -23,8 +25,8 @@ function formatCellValue(columnKey, value) {
   }
 }
 
-// Negotiation approval routing: how big is the gap between Current SP and
-// the price Sales wants to offer, as a % of Current SP (either direction).
+// Negotiation approval routing (Parts): how big is the gap between Current SP
+// and the price Sales wants to offer, as a % of Current SP (either direction).
 function computeNegotiationAction(currentSP, customPrice) {
   const current = Number(currentSP);
   const custom = Number(customPrice);
@@ -40,7 +42,35 @@ function computeNegotiationAction(currentSP, customPrice) {
   return { label: 'Approval Director', diffPercent, color: '#dc2626' };
 }
 
-function PricingPageContent({ user }) {
+// Negotiation approval routing (Machine) — exact formula from supervisor:
+// =IF((SP-Custom)/SP<5%;"Approval Sales Manager";IF((SP-Custom)/SP<5.5%;"Approval National Sales Manager";"Approval Marketing / Director"))
+// Intentionally NOT an absolute value — only a lower custom price than
+// Current SP routes through the 5% / 5.5% tiers below.
+function computeMachineNegotiationAction(currentSP, customPrice) {
+  const current = Number(currentSP);
+  const custom = Number(customPrice);
+  if (!Number.isFinite(current) || current === 0 || !Number.isFinite(custom)) return null;
+
+  const diffPercent = ((current - custom) / current) * 100;
+  if (diffPercent < 5) {
+    return { label: 'Approval Sales Manager', diffPercent, color: '#16a34a' };
+  }
+  if (diffPercent < 5.5) {
+    return { label: 'Approval National Sales Manager', diffPercent, color: '#d97706' };
+  }
+  return { label: 'Approval Marketing / Director', diffPercent, color: '#dc2626' };
+}
+
+function KpiCard({ label, value }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="mt-1 text-xl font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function PartsTab({ user }) {
   const [rawText, setRawText] = useState('');
   const [columns, setColumns] = useState([]);
   const [results, setResults] = useState([]);
@@ -110,17 +140,7 @@ function PricingPageContent({ user }) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Smart Parts Pricing Assistant</h1>
-          <p className="text-sm text-slate-500">Cari harga spare part secara massal</p>
-        </div>
-        <Link href="/" className="text-sm text-slate-500 underline underline-offset-2">
-          &larr; Kembali
-        </Link>
-      </div>
-
+    <>
       <div className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <label className="mb-1 block text-sm font-medium">Paste Material Code (satu per baris)</label>
         <textarea
@@ -252,15 +272,239 @@ function PricingPageContent({ user }) {
           <KpiCard label="Pricing Records Available" value={kpi.pricingRecordsAvailable} />
         </div>
       )}
-    </div>
+    </>
   );
 }
 
-function KpiCard({ label, value }) {
+function MachineTab({ user }) {
+  const [rawText, setRawText] = useState('');
+  const [results, setResults] = useState([]);
+  const [notFound, setNotFound] = useState([]);
+  const [meta, setMeta] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [exportEnabled, setExportEnabled] = useState(true);
+  const [negotiationMode, setNegotiationMode] = useState(false);
+  const [customPrices, setCustomPrices] = useState({});
+
+  const isAdmin = user.role === 'admin';
+
+  useEffect(() => {
+    getFeatureFlags()
+      .then((data) => {
+        const flag = data.flags.find((f) => f.key === 'pricing_export');
+        setExportEnabled(flag ? flag.enabled : true);
+      })
+      .catch(() => {});
+  }, []);
+
+  const canExport = isAdmin || exportEnabled;
+
+  const materialNumbers = useMemo(
+    () => [
+      ...new Set(
+        rawText
+          .split('\n')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      ),
+    ],
+    [rawText]
+  );
+
+  async function handleGetPrice() {
+    if (materialNumbers.length === 0) {
+      setError('Masukkan minimal 1 material code');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      const data = await searchMachine({ materialNumbers });
+      setResults(data.results);
+      setNotFound(data.notFound);
+      setMeta(data.meta);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleExport() {
+    if (materialNumbers.length === 0) return;
+    try {
+      await exportMachine({ materialNumbers });
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-1 text-xl font-semibold">{value}</p>
+    <>
+      <div className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <label className="mb-1 block text-sm font-medium">Paste Material Code (satu per baris)</label>
+        <textarea
+          rows={8}
+          value={rawText}
+          onChange={(e) => setRawText(e.target.value)}
+          placeholder={'MAT-001\nMAT-002\nMAT-003'}
+          className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+        />
+      </div>
+
+      <div className="mb-6 flex items-center gap-3">
+        <button
+          onClick={handleGetPrice}
+          disabled={loading}
+          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+        >
+          {loading ? 'Mencari...' : `GET PRICE (${materialNumbers.length})`}
+        </button>
+        {canExport && (
+          <button
+            onClick={handleExport}
+            disabled={materialNumbers.length === 0}
+            className="rounded border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 disabled:opacity-50"
+          >
+            EXPORT EXCEL
+          </button>
+        )}
+        {results.length > 0 && (
+          <button
+            onClick={() => setNegotiationMode((v) => !v)}
+            className={`rounded border px-4 py-2 text-sm font-medium ${
+              negotiationMode
+                ? 'border-slate-900 bg-slate-900 text-white'
+                : 'border-slate-300 hover:bg-slate-100'
+            }`}
+          >
+            Negotiation
+          </button>
+        )}
+        {meta && (
+          <span className="text-xs text-slate-500">
+            {meta.totalFound}/{meta.totalRequested} ditemukan &middot; {meta.responseTimeMs}ms
+          </span>
+        )}
+      </div>
+
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+
+      {results.length > 0 && (
+        <div className="mb-6 overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-100">
+              <tr>
+                <th className="px-3 py-2 text-left font-medium">Material</th>
+                <th className="px-3 py-2 text-left font-medium">Description</th>
+                {isAdmin && <th className="px-3 py-2 text-left font-medium">COGS</th>}
+                <th className="px-3 py-2 text-left font-medium">Selling Price</th>
+                {negotiationMode && (
+                  <>
+                    <th className="px-3 py-2 text-left font-medium">Custom Price</th>
+                    <th className="px-3 py-2 text-left font-medium">Action</th>
+                  </>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((r) => {
+                const action = negotiationMode
+                  ? computeMachineNegotiationAction(r.price, customPrices[r.id])
+                  : null;
+                return (
+                  <tr key={r.id} className="border-t border-slate-100">
+                    <td className="px-3 py-2">{r.materialNumber}</td>
+                    <td className="px-3 py-2">{r.description || '-'}</td>
+                    {isAdmin && (
+                      <td className="px-3 py-2">
+                        {r.cogs === null || r.cogs === undefined ? '-' : Number(r.cogs).toLocaleString('id-ID')}
+                      </td>
+                    )}
+                    <td className="px-3 py-2">{Number(r.price).toLocaleString('id-ID')}</td>
+                    {negotiationMode && (
+                      <>
+                        <td className="px-3 py-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={customPrices[r.id] ?? ''}
+                            onChange={(e) =>
+                              setCustomPrices((prev) => ({ ...prev, [r.id]: e.target.value }))
+                            }
+                            placeholder="0"
+                            className="w-32 rounded border border-slate-300 px-2 py-1 text-sm"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          {action ? (
+                            <span
+                              className="inline-block rounded px-2 py-0.5 text-xs font-medium text-white"
+                              style={{ backgroundColor: action.color }}
+                              title={`Selisih ${action.diffPercent.toFixed(1)}% dari Selling Price`}
+                            >
+                              {action.label}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">-</span>
+                          )}
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {notFound.length > 0 && (
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          <p className="mb-1 font-medium">{notFound.length} material code tidak ditemukan:</p>
+          <p className="break-words">{notFound.join(', ')}</p>
+        </div>
+      )}
+    </>
+  );
+}
+
+function PricingPageContent({ user }) {
+  const [tab, setTab] = useState('parts');
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-10">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Smart Parts Pricing Assistant</h1>
+          <p className="text-sm text-slate-500">Cari harga spare part & machine secara massal</p>
+        </div>
+        <Link href="/" className="text-sm text-slate-500 underline underline-offset-2">
+          &larr; Kembali
+        </Link>
+      </div>
+
+      <div className="mb-6 flex gap-2 border-b border-slate-200">
+        {[
+          { key: 'parts', label: '1. Parts' },
+          { key: 'machine', label: '2. Machine' },
+        ].map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
+              tab === t.key
+                ? 'border-slate-900 text-slate-900'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'parts' ? <PartsTab user={user} /> : <MachineTab user={user} />}
     </div>
   );
 }

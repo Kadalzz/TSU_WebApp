@@ -41,6 +41,7 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   pricingUploads     PricingUploadHistory[]
+  machineUploads     MachineUploadHistory[]
   gpsUploads         SalesGpsUploadHistory[]
   pricingSearchLogs  PricingSearchLog[]
   subModelAssignments GpsMaterialNoSubModelMap[]
@@ -110,6 +111,47 @@ model PricingSearchLog {
   searchedAt      DateTime @default(now()) @map("searched_at")
 
   @@map("pricing_search_log")
+}
+
+// ============ MODULE 1b: SMART PRICING ASSISTANT — MACHINE ============
+// Separate sub-section from Parts: its own master data & upload history,
+// same "Smart Pricing Assistant" module access toggle and export feature
+// flag as Parts, but its own Negotiation approval formula (see frontend).
+
+model MachineUploadHistory {
+  id              Int      @id @default(autoincrement())
+  filename        String
+  uploadedBy      Int      @map("uploaded_by")
+  uploader        User     @relation(fields: [uploadedBy], references: [id])
+  uploadDate      DateTime @default(now()) @map("upload_date")
+  version         Int
+  totalRecords    Int      @map("total_records")
+  successCount    Int      @map("success_count")
+  failedCount     Int      @map("failed_count")
+  errorLog        Json?    @map("error_log")
+  isActiveVersion Boolean  @default(true) @map("is_active_version")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  records MachineMaster[]
+
+  @@map("machine_upload_history")
+}
+
+model MachineMaster {
+  id              Int      @id @default(autoincrement())
+  materialNumber  String   @map("material_number")
+  description     String?
+  // COGS is confidential — only ever exposed to Admin (see machine.service.js),
+  // never sent to a non-admin (Sales) user in any API response or export.
+  cogs            Decimal? @db.Decimal(14, 2)
+  price           Decimal  @db.Decimal(14, 2)
+  uploadVersionId Int      @map("upload_version_id")
+  uploadVersion   MachineUploadHistory @relation(fields: [uploadVersionId], references: [id])
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([materialNumber])
+  @@index([uploadVersionId])
+  @@map("machine_master")
 }
 
 // ============ MODULE 2: SALES GPS ============

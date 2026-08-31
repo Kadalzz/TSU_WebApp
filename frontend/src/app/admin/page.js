@@ -23,6 +23,14 @@ function AdminHubContent() {
         </Link>
 
         <Link
+          href="/admin/machine"
+          className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+        >
+          <h2 className="mb-2 text-lg font-semibold">Pricing Machine</h2>
+          <p className="text-sm text-slate-500">Upload master harga machine, riwayat & rollback.</p>
+        </Link>
+
+        <Link
           href="/admin/gps"
           className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
         >

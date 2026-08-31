@@ -112,6 +112,32 @@ export const deletePricingUpload = (id) =>
 
 export const downloadPricingErrorLog = (id) => apiDownload(`/api/pricing/uploads/${id}/error-log`);
 
+// ---------- Machine: search & export ----------
+
+export const searchMachine = (payload) =>
+  apiFetch('/api/machine/search', { method: 'POST', body: JSON.stringify(payload) });
+
+export const exportMachine = (payload) =>
+  apiDownload('/api/machine/export', { method: 'POST', body: JSON.stringify(payload) });
+
+// ---------- Machine: admin upload history ----------
+
+export const listMachineUploads = () => apiFetch('/api/machine/uploads');
+
+export const uploadMachineMaster = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return apiUpload('/api/machine/uploads', formData);
+};
+
+export const rollbackMachineUpload = (id) =>
+  apiFetch(`/api/machine/uploads/${id}/rollback`, { method: 'POST' });
+
+export const deleteMachineUpload = (id) =>
+  apiFetch(`/api/machine/uploads/${id}`, { method: 'DELETE' });
+
+export const downloadMachineErrorLog = (id) => apiDownload(`/api/machine/uploads/${id}/error-log`);
+
 // ---------- GPS: dashboard ----------
 
 function toQueryString(params) {
