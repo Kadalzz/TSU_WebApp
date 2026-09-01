@@ -1,5 +1,6 @@
 const ExcelJS = require('exceljs');
 const { Readable } = require('stream');
+const { cellText, cellNumber } = require('../../utils/excelText');
 
 const HEADER_MAP = {
   'material code': 'materialNumber',
@@ -99,27 +100,21 @@ async function loadWorkbookRows(buffer, originalName) {
   return rows;
 }
 
-function parseNumber(value) {
-  if (value === null || value === undefined || value === '') return null;
-  const num = Number(value);
-  return Number.isFinite(num) ? num : NaN;
-}
+const parseNumber = cellNumber;
 
 function parseDate(value) {
   if (!value) return null;
   if (value instanceof Date) return value;
-  const parsed = new Date(value);
+  const parsed = new Date(cellText(value) ?? value);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed; // undefined = invalid
 }
 
-function asText(value) {
-  return value != null && value !== '' ? String(value).trim() : null;
-}
+const asText = cellText;
 
 function validateRow(raw) {
   const errors = [];
 
-  const materialNumber = raw.materialNumber != null ? String(raw.materialNumber).trim() : '';
+  const materialNumber = cellText(raw.materialNumber) || '';
   if (!materialNumber) errors.push('Material Code wajib diisi');
 
   let price = null;
@@ -148,7 +143,7 @@ function validateRow(raw) {
       description: asText(raw.description),
       valuationType: asText(raw.valuationType),
       pricingDate,
-      currency: raw.currency ? String(raw.currency).trim() : 'IDR',
+      currency: cellText(raw.currency) || 'IDR',
       newBeCode: asText(raw.newBeCode),
       newCommodityCode: asText(raw.newCommodityCode),
       price,

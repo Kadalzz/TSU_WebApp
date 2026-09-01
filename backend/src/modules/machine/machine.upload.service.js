@@ -1,5 +1,6 @@
 const ExcelJS = require('exceljs');
 const { Readable } = require('stream');
+const { cellText, cellNumber } = require('../../utils/excelText');
 
 const HEADER_MAP = {
   material: 'materialNumber',
@@ -79,20 +80,13 @@ async function loadWorkbookRows(buffer, originalName) {
   return rows;
 }
 
-function parseNumber(value) {
-  if (value === null || value === undefined || value === '') return null;
-  const num = Number(value);
-  return Number.isFinite(num) ? num : NaN;
-}
-
-function asText(value) {
-  return value != null && value !== '' ? String(value).trim() : null;
-}
+const parseNumber = cellNumber;
+const asText = cellText;
 
 function validateRow(raw) {
   const errors = [];
 
-  const materialNumber = raw.materialNumber != null ? String(raw.materialNumber).trim() : '';
+  const materialNumber = cellText(raw.materialNumber) || '';
   if (!materialNumber) errors.push('Material wajib diisi');
 
   let price = null;

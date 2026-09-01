@@ -1,5 +1,6 @@
 const ExcelJS = require('exceljs');
 const { Readable } = require('stream');
+const { cellText, cellNumber } = require('../../utils/excelText');
 
 const HEADER_MAP = {
   'invoice date': 'invoiceDate',
@@ -123,16 +124,11 @@ async function loadWorkbookRows(buffer, originalName) {
   return rows;
 }
 
-function parseNumber(value) {
-  if (value === null || value === undefined || value === '') return null;
-  const num = Number(value);
-  return Number.isFinite(num) ? num : NaN;
-}
+const parseNumber = cellNumber;
 
 function normalizePercent(value) {
-  if (value === null || value === undefined || value === '') return null;
-  const num = Number(value);
-  if (!Number.isFinite(num)) return NaN;
+  const num = cellNumber(value);
+  if (num === null || Number.isNaN(num)) return num;
   // A cell formatted as "Percentage" in Excel comes through as a fraction
   // (15.5% -> 0.155); a plain number column has the percent value directly
   // (15.5% -> 15.5). Values within [-1, 1] are assumed to be the fraction form.
@@ -142,7 +138,7 @@ function normalizePercent(value) {
 function parseDate(value) {
   if (!value) return null;
   if (value instanceof Date) return value;
-  const parsed = new Date(value);
+  const parsed = new Date(cellText(value) ?? value);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
 
@@ -156,7 +152,7 @@ function validateRow(raw) {
     errors.push('Invoice Date tidak valid');
   }
 
-  const salesName = raw.salesName != null ? String(raw.salesName).trim() : '';
+  const salesName = cellText(raw.salesName) || '';
   if (!salesName) errors.push('Sales Name wajib diisi');
 
   let revenue = null;
@@ -171,12 +167,12 @@ function validateRow(raw) {
     if (Number.isNaN(cost)) errors.push('Cost harus berupa angka');
   }
 
-  const customerName = raw.customerName != null ? String(raw.customerName).trim() : null;
-  const materialNo = raw.materialNo != null ? String(raw.materialNo).trim() : null;
-  const materialDescription = raw.materialDescription != null ? String(raw.materialDescription).trim() : null;
-  const serialNo = raw.serialNo != null ? String(raw.serialNo).trim() : null;
-  const salesArea = raw.salesArea != null ? String(raw.salesArea).trim() : null;
-  const marginRemark = raw.marginRemark != null ? String(raw.marginRemark).trim() : null;
+  const customerName = cellText(raw.customerName);
+  const materialNo = cellText(raw.materialNo);
+  const materialDescription = cellText(raw.materialDescription);
+  const serialNo = cellText(raw.serialNo);
+  const salesArea = cellText(raw.salesArea);
+  const marginRemark = cellText(raw.marginRemark);
 
   let actualGpPercent = null;
   if (raw.actualGpPercent != null && raw.actualGpPercent !== '') {
