@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { login } from '@/lib/api';
 
-const NAVY = '#0b3d8c';
-const GOLD = '#f5c518';
+const NAVY = '#20407f';
+const GOLD = '#face0b';
 
 export default function LoginPage() {
   const router = useRouter();

@@ -15,8 +15,8 @@ import {
   getFeatureFlags,
 } from '@/lib/api';
 
-const NAVY = '#0b3d8c';
-const GOLD = '#f5c518';
+const NAVY = '#20407f';
+const GOLD = '#face0b';
 const RED = '#dc2626';
 
 function formatCellValue(columnKey, value) {
@@ -187,7 +187,7 @@ function PartsTab({ user }) {
 
   return (
     <>
-      <div className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-6 rounded-b-lg border border-t-0 border-slate-200 bg-white p-5 shadow-sm">
         <label className="mb-1 block text-sm font-medium">Paste Material Code (satu per baris)</label>
         <textarea
           rows={8}
@@ -359,7 +359,7 @@ function MachineTab({ user }) {
 
   return (
     <>
-      <div className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-6 rounded-b-lg border border-t-0 border-slate-200 bg-white p-5 shadow-sm">
         <label className="mb-1 block text-sm font-medium">Paste Material Code (satu per baris)</label>
         <textarea
           rows={8}
@@ -462,11 +462,11 @@ function PricingPageContent({ user }) {
   const [tab, setTab] = useState('parts');
 
   return (
-    <PageChrome accentSrc="/pricing-header-footer.svg" user={user}>
+    <PageChrome accentSrc="/standard-accent-bar.svg" user={user}>
       <div className="mx-auto max-w-6xl px-4 py-10">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">Smart Parts Pricing Assistant</h1>
+            <h1 className="text-2xl font-semibold">Smart Pricing Assistant</h1>
             <p className="text-sm text-slate-500">Cari harga spare part & machine secara massal</p>
           </div>
           <Link href="/" className="text-sm text-slate-500 underline underline-offset-2">
@@ -474,7 +474,7 @@ function PricingPageContent({ user }) {
           </Link>
         </div>
 
-        <div className="mb-6 flex items-center overflow-hidden rounded-lg" style={{ backgroundColor: GOLD }}>
+        <div className="flex items-center overflow-hidden rounded-t-lg" style={{ backgroundColor: GOLD }}>
           {[
             { key: 'parts', label: '1. Parts' },
             { key: 'machine', label: '2. Machine' },

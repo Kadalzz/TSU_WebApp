@@ -5,7 +5,7 @@ import Image from 'next/image';
 import AuthGuard from '@/components/AuthGuard';
 import { AccentBar, ProfileMenu } from '@/components/PageChrome';
 
-const NAVY = '#0b3d8c';
+const NAVY = '#20407f';
 
 function ModuleCard({ href, title, description, photo }) {
   return (
@@ -38,7 +38,7 @@ function LandingContent({ user }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
-      <AccentBar src="/Header%20svg.svg" className="h-4 w-full" />
+      <AccentBar src="/standard-accent-bar.svg" className="h-4 w-full" />
 
       <header className="flex items-center justify-between bg-white px-6 py-3 shadow-sm">
         <Image src="/LOGO.jpg.jpeg" alt="SEM - Tri Swardana Utama" width={200} height={34} className="h-8 w-auto" priority />
@@ -96,7 +96,7 @@ function LandingContent({ user }) {
         </p>
       </main>
 
-      <AccentBar src="/Header%20svg.svg" className="h-12 w-full" />
+      <AccentBar src="/standard-accent-bar.svg" className="h-12 w-full" />
     </div>
   );
 }

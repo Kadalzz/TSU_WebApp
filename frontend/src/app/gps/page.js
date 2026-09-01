@@ -36,7 +36,7 @@ const MONTH_NAMES = [
   { value: '12', label: 'Desember' },
 ];
 
-const NAVY = '#0b3d8c';
+const NAVY = '#20407f';
 
 function NavySelect({ value, onChange, disabled, children }) {
   return (
@@ -154,7 +154,7 @@ function GpsPageContent({ user }) {
   }, [search]);
 
   return (
-    <PageChrome accentSrc="/gps-header-footer.svg" user={user}>
+    <PageChrome accentSrc="/standard-accent-bar.svg" user={user}>
       <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="mb-6 flex items-center justify-between no-print">
         <div>
@@ -175,8 +175,13 @@ function GpsPageContent({ user }) {
 
       {/* Filters */}
       <div
-        className="mb-6 flex flex-wrap divide-y divide-white/20 overflow-hidden rounded-lg shadow-sm no-print sm:divide-x sm:divide-y-0"
-        style={{ backgroundColor: NAVY }}
+        className="mb-6 flex flex-wrap overflow-hidden rounded-lg shadow-sm no-print"
+        style={{
+          backgroundImage: 'url(/gps-filter-bar.svg)',
+          backgroundSize: '100% 100%',
+          backgroundRepeat: 'no-repeat',
+          backgroundColor: NAVY,
+        }}
       >
         <NavySelect value={filters.year} onChange={(e) => setFilters((f) => ({ ...f, year: e.target.value, monthNum: '' }))}>
           <option value="">All Year</option>

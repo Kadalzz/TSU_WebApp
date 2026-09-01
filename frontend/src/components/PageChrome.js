@@ -63,19 +63,22 @@ export function ProfileMenu({ user, variant = 'greeting' }) {
         </button>
 
         {open && (
-          <div className="absolute right-0 top-10 z-40 w-64 rounded-xl border border-slate-200 bg-white px-5 py-5 text-center shadow-xl">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center">
-              <Image src="/profile-symbol-ring.svg" alt="" width={56} height={56} />
+          <div className="absolute right-0 top-12 z-40 w-64">
+            <div className="absolute -top-1.5 right-3 h-3 w-3 rotate-45 border-l border-t border-slate-200 bg-white" />
+            <div className="relative rounded-xl border border-slate-200 bg-white px-5 py-5 text-center shadow-xl">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center">
+                <Image src="/profile-symbol-ring.svg" alt="" width={56} height={56} />
+              </div>
+              <p className="mt-3 text-sm font-bold text-slate-900">{user.name}</p>
+              <p className="mt-0.5 break-all text-xs text-slate-500">@{user.email}</p>
+              <button
+                onClick={handleLogout}
+                className="mt-4 rounded px-6 py-1.5 text-xs font-semibold text-slate-900 hover:brightness-95"
+                style={{ backgroundColor: '#face0b' }}
+              >
+                Logout
+              </button>
             </div>
-            <p className="mt-3 text-sm font-bold text-slate-900">{user.name}</p>
-            <p className="mt-0.5 break-all text-xs text-slate-500">@{user.email}</p>
-            <button
-              onClick={handleLogout}
-              className="mt-4 rounded px-6 py-1.5 text-xs font-semibold text-slate-900 hover:brightness-95"
-              style={{ backgroundColor: '#f5c518' }}
-            >
-              Logout
-            </button>
           </div>
         )}
       </div>

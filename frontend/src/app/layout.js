@@ -9,7 +9,7 @@ const roboto = Roboto({
 
 export const metadata = {
   title: 'TSU WebApp',
-  description: 'Smart Parts Pricing Assistant & Sales GPS',
+  description: 'Smart Pricing Assistant & Sales GPS',
 };
 
 export default function RootLayout({ children }) {
