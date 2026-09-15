@@ -134,18 +134,11 @@ function AdminHubContent({ user }) {
           <SectionHeading>Pengaturan</SectionHeading>
           <div className="grid gap-4 sm:grid-cols-2">
             <AdminCard
-              href="/admin/users"
-              icon="users"
-              iconColor="#b45309"
-              title="Kelola User"
-              description="Buat akun, atur role Admin/User, aktif/nonaktifkan."
-            />
-            <AdminCard
               href="/admin/settings"
               icon="cog"
               iconColor="#b45309"
               title="Settings"
-              description="Nyalakan/matikan fitur export untuk role User."
+              description="Fitur export & kelola user (buat akun, atur role, aktif/nonaktifkan)."
             />
           </div>
         </div>
