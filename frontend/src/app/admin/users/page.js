@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
+import PageChrome from '@/components/PageChrome';
 import { listUsers, createUserAccount, updateUserAccount, getMe } from '@/lib/api';
 
-function AdminUsersContent() {
+function AdminUsersContent({ user: loggedInUser }) {
   const [users, setUsers] = useState([]);
   const [me, setMe] = useState(null);
   const [form, setForm] = useState({
@@ -74,6 +75,7 @@ function AdminUsersContent() {
   }
 
   return (
+    <PageChrome accentSrc="/standard-accent-bar.svg" user={loggedInUser}>
     <div className="mx-auto max-w-4xl px-4 py-10">
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -228,9 +230,14 @@ function AdminUsersContent() {
         </table>
       </section>
     </div>
+    </PageChrome>
   );
 }
 
 export default function AdminUsersPage() {
-  return <AuthGuard requireRole="admin">{() => <AdminUsersContent />}</AuthGuard>;
+  return (
+    <AuthGuard requireRole="admin" hideTopBar>
+      {(user) => <AdminUsersContent user={user} />}
+    </AuthGuard>
+  );
 }

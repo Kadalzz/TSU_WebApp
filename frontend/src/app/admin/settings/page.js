@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
+import PageChrome from '@/components/PageChrome';
 import { getFeatureFlags, updateFeatureFlag } from '@/lib/api';
 
-function AdminSettingsContent() {
+function AdminSettingsContent({ user }) {
   const [flags, setFlags] = useState([]);
   const [error, setError] = useState('');
   const [savingKey, setSavingKey] = useState('');
@@ -28,6 +29,7 @@ function AdminSettingsContent() {
   }
 
   return (
+    <PageChrome accentSrc="/standard-accent-bar.svg" user={user}>
     <div className="mx-auto max-w-3xl px-4 py-10">
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -72,9 +74,14 @@ function AdminSettingsContent() {
         </ul>
       </section>
     </div>
+    </PageChrome>
   );
 }
 
 export default function AdminSettingsPage() {
-  return <AuthGuard requireRole="admin">{() => <AdminSettingsContent />}</AuthGuard>;
+  return (
+    <AuthGuard requireRole="admin" hideTopBar>
+      {(user) => <AdminSettingsContent user={user} />}
+    </AuthGuard>
+  );
 }

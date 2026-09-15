@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { logout as logoutApi } from '@/lib/api';
 
@@ -94,7 +95,9 @@ export default function PageChrome({ accentSrc, user, children }) {
       <AccentBar src={accentSrc} className="h-4 w-full" />
 
       <header className="flex items-center justify-between bg-white px-6 py-3 shadow-sm">
-        <Image src="/LOGO.jpg.jpeg" alt="SEM - Tri Swardana Utama" width={200} height={34} className="h-8 w-auto" priority />
+        <Link href="/">
+          <Image src="/LOGO.jpg.jpeg" alt="SEM - Tri Swardana Utama" width={200} height={34} className="h-8 w-auto" priority />
+        </Link>
         <ProfileMenu user={user} variant="nameRole" />
       </header>
 

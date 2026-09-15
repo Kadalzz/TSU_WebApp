@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
+import PageChrome from '@/components/PageChrome';
 import {
   uploadMachineMaster,
   listMachineUploads,
@@ -11,7 +12,7 @@ import {
   downloadMachineErrorLog,
 } from '@/lib/api';
 
-function AdminMachineContent() {
+function AdminMachineContent({ user }) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadSummary, setUploadSummary] = useState(null);
@@ -86,6 +87,7 @@ function AdminMachineContent() {
   }
 
   return (
+    <PageChrome accentSrc="/standard-accent-bar.svg" user={user}>
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -222,9 +224,14 @@ function AdminMachineContent() {
         </div>
       </section>
     </div>
+    </PageChrome>
   );
 }
 
 export default function AdminMachinePage() {
-  return <AuthGuard requireRole="admin">{() => <AdminMachineContent />}</AuthGuard>;
+  return (
+    <AuthGuard requireRole="admin" hideTopBar>
+      {(user) => <AdminMachineContent user={user} />}
+    </AuthGuard>
+  );
 }

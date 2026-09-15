@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
+import PageChrome from '@/components/PageChrome';
 import {
   uploadPricingMaster,
   listPricingUploads,
@@ -11,14 +12,25 @@ import {
   downloadPricingErrorLog,
   getPricingColumns,
   updatePricingColumns,
+  getPricingKpi,
 } from '@/lib/api';
 
-function AdminPricingContent() {
+function KpiCard({ label, value }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="mt-1 text-xl font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function AdminPricingContent({ user }) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadSummary, setUploadSummary] = useState(null);
   const [uploads, setUploads] = useState([]);
   const [columns, setColumns] = useState([]);
+  const [kpi, setKpi] = useState(null);
   const [error, setError] = useState('');
   const [savingColumns, setSavingColumns] = useState(false);
   const [busyId, setBusyId] = useState(null);
@@ -30,6 +42,7 @@ function AdminPricingContent() {
   useEffect(() => {
     refreshUploads();
     getPricingColumns().then((data) => setColumns(data.columns)).catch(() => {});
+    getPricingKpi().then(setKpi).catch(() => {});
   }, [refreshUploads]);
 
   async function handleFile(file) {
@@ -111,6 +124,7 @@ function AdminPricingContent() {
   }
 
   return (
+    <PageChrome accentSrc="/standard-accent-bar.svg" user={user}>
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -123,6 +137,15 @@ function AdminPricingContent() {
       </div>
 
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+
+      {kpi && (
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <KpiCard label="Total Material Searched" value={kpi.totalMaterialSearched} />
+          <KpiCard label="Average Response Time" value={`${kpi.averageResponseTimeMs} ms`} />
+          <KpiCard label="Monthly Search Volume" value={kpi.monthlySearchVolume} />
+          <KpiCard label="Pricing Records Available" value={kpi.pricingRecordsAvailable} />
+        </div>
+      )}
 
       {/* Drag & drop upload */}
       <section className="mb-8 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
@@ -267,9 +290,14 @@ function AdminPricingContent() {
         </div>
       </section>
     </div>
+    </PageChrome>
   );
 }
 
 export default function AdminPricingPage() {
-  return <AuthGuard requireRole="admin">{() => <AdminPricingContent />}</AuthGuard>;
+  return (
+    <AuthGuard requireRole="admin" hideTopBar>
+      {(user) => <AdminPricingContent user={user} />}
+    </AuthGuard>
+  );
 }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
+import PageChrome from '@/components/PageChrome';
 import {
   uploadGpsTransactions,
   listGpsUploads,
@@ -16,7 +17,7 @@ import {
   assignGpsMaterialSubModel,
 } from '@/lib/api';
 
-function AdminGpsContent() {
+function AdminGpsContent({ user }) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadSummary, setUploadSummary] = useState(null);
@@ -141,6 +142,7 @@ function AdminGpsContent() {
   const allSubModels = models.flatMap((m) => m.subModels.map((sm) => ({ ...sm, modelName: m.name })));
 
   return (
+    <PageChrome accentSrc="/standard-accent-bar.svg" user={user}>
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -350,9 +352,14 @@ function AdminGpsContent() {
         </table>
       </section>
     </div>
+    </PageChrome>
   );
 }
 
 export default function AdminGpsPage() {
-  return <AuthGuard requireRole="admin">{() => <AdminGpsContent />}</AuthGuard>;
+  return (
+    <AuthGuard requireRole="admin" hideTopBar>
+      {(user) => <AdminGpsContent user={user} />}
+    </AuthGuard>
+  );
 }
