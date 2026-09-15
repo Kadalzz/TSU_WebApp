@@ -8,7 +8,7 @@ const { requireModuleAccess } = require('../../middleware/moduleAccess');
 const router = express.Router();
 
 router.use(requireAuth);
-router.use(requireModuleAccess('pricing'));
+router.use(requireModuleAccess('pricingParts'));
 
 router.get('/columns', controller.getColumns);
 router.put('/columns', requireRole('admin'), controller.updateColumns);

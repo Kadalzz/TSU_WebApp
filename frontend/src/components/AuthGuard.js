@@ -31,10 +31,13 @@ function TopBar({ user }) {
   );
 }
 
-const MODULE_ACCESS_FIELD = {
-  pricing: 'canAccessPricing',
-  gps: 'canAccessGps',
-};
+// Pricing has two independent sub-toggles (Parts / Machine) — the page
+// itself is reachable as long as the user has at least one of them.
+function hasModuleAccess(user, requireModule) {
+  if (requireModule === 'pricing') return user.canAccessPricingParts || user.canAccessPricingMachine;
+  if (requireModule === 'gps') return user.canAccessGps;
+  return true;
+}
 
 export default function AuthGuard({ children, requireRole, requireModule, hideTopBar }) {
   const router = useRouter();
@@ -51,7 +54,7 @@ export default function AuthGuard({ children, requireRole, requireModule, hideTo
         if (
           requireModule &&
           data.user.role !== 'admin' &&
-          !data.user[MODULE_ACCESS_FIELD[requireModule]]
+          !hasModuleAccess(data.user, requireModule)
         ) {
           router.push('/');
           return;

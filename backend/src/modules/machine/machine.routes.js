@@ -8,7 +8,7 @@ const { requireModuleAccess } = require('../../middleware/moduleAccess');
 const router = express.Router();
 
 router.use(requireAuth);
-router.use(requireModuleAccess('pricing'));
+router.use(requireModuleAccess('pricingMachine'));
 
 router.post('/search', controller.search);
 router.post('/export', requireFeatureEnabled('pricing_export'), controller.exportResults);

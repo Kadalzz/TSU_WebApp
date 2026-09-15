@@ -25,7 +25,8 @@ function AdminSettingsContent({ user: loggedInUser }) {
     email: '',
     password: '',
     role: 'user',
-    canAccessPricing: true,
+    canAccessPricingParts: true,
+    canAccessPricingMachine: true,
     canAccessGps: true,
   });
   const [usersError, setUsersError] = useState('');
@@ -60,7 +61,15 @@ function AdminSettingsContent({ user: loggedInUser }) {
     setCreating(true);
     try {
       await createUserAccount(form);
-      setForm({ name: '', email: '', password: '', role: 'user', canAccessPricing: true, canAccessGps: true });
+      setForm({
+        name: '',
+        email: '',
+        password: '',
+        role: 'user',
+        canAccessPricingParts: true,
+        canAccessPricingMachine: true,
+        canAccessGps: true,
+      });
       refreshUsers();
     } catch (err) {
       setUsersError(err.message);
@@ -192,14 +201,22 @@ function AdminSettingsContent({ user: loggedInUser }) {
               {creating ? 'Menyimpan...' : 'Tambah'}
             </button>
             {form.role !== 'admin' && (
-              <div className="flex items-center gap-4 sm:col-span-5">
+              <div className="flex flex-wrap items-center gap-4 sm:col-span-5">
                 <label className="flex items-center gap-1.5 text-xs text-slate-600">
                   <input
                     type="checkbox"
-                    checked={form.canAccessPricing}
-                    onChange={(e) => setForm((f) => ({ ...f, canAccessPricing: e.target.checked }))}
+                    checked={form.canAccessPricingParts}
+                    onChange={(e) => setForm((f) => ({ ...f, canAccessPricingParts: e.target.checked }))}
                   />
-                  Akses Smart Parts Pricing
+                  Akses Smart Pricing — Parts
+                </label>
+                <label className="flex items-center gap-1.5 text-xs text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={form.canAccessPricingMachine}
+                    onChange={(e) => setForm((f) => ({ ...f, canAccessPricingMachine: e.target.checked }))}
+                  />
+                  Akses Smart Pricing — Machine
                 </label>
                 <label className="flex items-center gap-1.5 text-xs text-slate-600">
                   <input
@@ -252,10 +269,18 @@ function AdminSettingsContent({ user: loggedInUser }) {
                           <label className="flex items-center gap-1.5">
                             <input
                               type="checkbox"
-                              checked={u.canAccessPricing}
-                              onChange={(e) => handleModuleAccessChange(u, 'canAccessPricing', e.target.checked)}
+                              checked={u.canAccessPricingParts}
+                              onChange={(e) => handleModuleAccessChange(u, 'canAccessPricingParts', e.target.checked)}
                             />
-                            Pricing
+                            Pricing — Parts
+                          </label>
+                          <label className="flex items-center gap-1.5">
+                            <input
+                              type="checkbox"
+                              checked={u.canAccessPricingMachine}
+                              onChange={(e) => handleModuleAccessChange(u, 'canAccessPricingMachine', e.target.checked)}
+                            />
+                            Pricing — Machine
                           </label>
                           <label className="flex items-center gap-1.5">
                             <input

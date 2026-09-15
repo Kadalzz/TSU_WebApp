@@ -32,7 +32,7 @@ function ModuleCard({ href, title, description, photo }) {
 }
 
 function LandingContent({ user }) {
-  const canPricing = user.role === 'admin' || user.canAccessPricing;
+  const canPricing = user.role === 'admin' || user.canAccessPricingParts || user.canAccessPricingMachine;
   const canGps = user.role === 'admin' || user.canAccessGps;
   const isAdmin = user.role === 'admin';
 

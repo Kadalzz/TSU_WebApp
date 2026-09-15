@@ -7,7 +7,8 @@ const USER_SELECT = {
   email: true,
   role: true,
   isActive: true,
-  canAccessPricing: true,
+  canAccessPricingParts: true,
+  canAccessPricingMachine: true,
   canAccessGps: true,
   createdAt: true,
 };
@@ -19,7 +20,7 @@ async function listUsers() {
   });
 }
 
-async function createUser({ name, email, password, role, canAccessPricing, canAccessGps }) {
+async function createUser({ name, email, password, role, canAccessPricingParts, canAccessPricingMachine, canAccessGps }) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     const err = new Error('Email sudah terdaftar');
@@ -34,7 +35,8 @@ async function createUser({ name, email, password, role, canAccessPricing, canAc
       email,
       passwordHash,
       role: role === 'admin' ? 'admin' : 'user',
-      canAccessPricing: canAccessPricing !== undefined ? canAccessPricing : true,
+      canAccessPricingParts: canAccessPricingParts !== undefined ? canAccessPricingParts : true,
+      canAccessPricingMachine: canAccessPricingMachine !== undefined ? canAccessPricingMachine : true,
       canAccessGps: canAccessGps !== undefined ? canAccessGps : true,
     },
     select: USER_SELECT,
@@ -42,7 +44,7 @@ async function createUser({ name, email, password, role, canAccessPricing, canAc
   return user;
 }
 
-async function updateUser(id, { name, role, isActive, canAccessPricing, canAccessGps }, requestingUserId) {
+async function updateUser(id, { name, role, isActive, canAccessPricingParts, canAccessPricingMachine, canAccessGps }, requestingUserId) {
   if (id === requestingUserId && isActive === false) {
     const err = new Error('Tidak bisa menonaktifkan akun sendiri');
     err.status = 400;
@@ -60,7 +62,8 @@ async function updateUser(id, { name, role, isActive, canAccessPricing, canAcces
       ...(name !== undefined ? { name } : {}),
       ...(role !== undefined ? { role } : {}),
       ...(isActive !== undefined ? { isActive } : {}),
-      ...(canAccessPricing !== undefined ? { canAccessPricing } : {}),
+      ...(canAccessPricingParts !== undefined ? { canAccessPricingParts } : {}),
+      ...(canAccessPricingMachine !== undefined ? { canAccessPricingMachine } : {}),
       ...(canAccessGps !== undefined ? { canAccessGps } : {}),
     },
     select: USER_SELECT,

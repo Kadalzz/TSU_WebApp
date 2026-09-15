@@ -10,14 +10,22 @@ async function listUsers(req, res, next) {
 
 async function createUser(req, res, next) {
   try {
-    const { name, email, password, role, canAccessPricing, canAccessGps } = req.body;
+    const { name, email, password, role, canAccessPricingParts, canAccessPricingMachine, canAccessGps } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'name, email, dan password wajib diisi' });
     }
     if (password.length < 8) {
       return res.status(400).json({ message: 'Password minimal 8 karakter' });
     }
-    const user = await usersService.createUser({ name, email, password, role, canAccessPricing, canAccessGps });
+    const user = await usersService.createUser({
+      name,
+      email,
+      password,
+      role,
+      canAccessPricingParts,
+      canAccessPricingMachine,
+      canAccessGps,
+    });
     res.status(201).json({ user });
   } catch (err) {
     next(err);
@@ -27,10 +35,10 @@ async function createUser(req, res, next) {
 async function updateUser(req, res, next) {
   try {
     const id = Number(req.params.id);
-    const { name, role, isActive, canAccessPricing, canAccessGps } = req.body;
+    const { name, role, isActive, canAccessPricingParts, canAccessPricingMachine, canAccessGps } = req.body;
     const user = await usersService.updateUser(
       id,
-      { name, role, isActive, canAccessPricing, canAccessGps },
+      { name, role, isActive, canAccessPricingParts, canAccessPricingMachine, canAccessGps },
       req.user.sub
     );
     res.json({ user });

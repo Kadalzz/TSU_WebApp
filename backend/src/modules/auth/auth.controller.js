@@ -49,7 +49,8 @@ async function me(req, res, next) {
         name: user.name,
         email: user.email,
         role: user.role,
-        canAccessPricing: user.canAccessPricing,
+        canAccessPricingParts: user.canAccessPricingParts,
+        canAccessPricingMachine: user.canAccessPricingMachine,
         canAccessGps: user.canAccessGps,
       },
     });

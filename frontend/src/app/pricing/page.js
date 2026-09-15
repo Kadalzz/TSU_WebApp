@@ -459,7 +459,16 @@ function MachineTab({ user }) {
 }
 
 function PricingPageContent({ user }) {
-  const [tab, setTab] = useState('parts');
+  const isAdmin = user.role === 'admin';
+  const canParts = isAdmin || user.canAccessPricingParts;
+  const canMachine = isAdmin || user.canAccessPricingMachine;
+
+  const tabs = [
+    canParts && { key: 'parts', label: '1. Parts' },
+    canMachine && { key: 'machine', label: canParts ? '2. Machine' : '1. Machine' },
+  ].filter(Boolean);
+
+  const [tab, setTab] = useState(tabs[0]?.key);
 
   return (
     <PageChrome accentSrc="/standard-accent-bar.svg" user={user}>
@@ -474,27 +483,33 @@ function PricingPageContent({ user }) {
           </Link>
         </div>
 
-        <div className="flex items-center overflow-hidden rounded-t-lg" style={{ backgroundColor: GOLD }}>
-          {[
-            { key: 'parts', label: '1. Parts' },
-            { key: 'machine', label: '2. Machine' },
-          ].map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className="px-6 py-2.5 text-sm font-semibold transition"
-              style={
-                tab === t.key
-                  ? { backgroundColor: NAVY, color: '#fff' }
-                  : { color: '#1c1917' }
-              }
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        {tabs.length > 0 && (
+          <div className="flex items-center overflow-hidden rounded-t-lg" style={{ backgroundColor: GOLD }}>
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                disabled={tabs.length === 1}
+                className="px-6 py-2.5 text-sm font-semibold transition"
+                style={
+                  tab === t.key
+                    ? { backgroundColor: NAVY, color: '#fff' }
+                    : { color: '#1c1917' }
+                }
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
 
-        {tab === 'parts' ? <PartsTab user={user} /> : <MachineTab user={user} />}
+        {!tab && (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            Akun Anda belum diberi akses ke Parts maupun Machine. Hubungi Admin.
+          </p>
+        )}
+        {tab === 'parts' && <PartsTab user={user} />}
+        {tab === 'machine' && <MachineTab user={user} />}
       </div>
     </PageChrome>
   );

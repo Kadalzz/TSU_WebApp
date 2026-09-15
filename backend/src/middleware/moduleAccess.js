@@ -1,7 +1,13 @@
 const prisma = require('../config/db');
 
+const FIELD_MAP = {
+  pricingParts: 'canAccessPricingParts',
+  pricingMachine: 'canAccessPricingMachine',
+  gps: 'canAccessGps',
+};
+
 function requireModuleAccess(moduleKey) {
-  const field = moduleKey === 'pricing' ? 'canAccessPricing' : 'canAccessGps';
+  const field = FIELD_MAP[moduleKey];
 
   return async (req, res, next) => {
     if (req.user.role === 'admin') return next();
