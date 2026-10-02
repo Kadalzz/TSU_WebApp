@@ -1,3 +1,5 @@
+import { upload as blobUpload } from '@vercel/blob/client';
+
 // Relative paths only — requests go through the Next.js rewrite proxy
 // (see next.config.js) so the browser always talks to its own origin,
 // keeping the auth cookie strictly first-party.
@@ -22,20 +24,18 @@ async function apiFetch(path, options = {}) {
   return data;
 }
 
-async function apiUpload(path, formData) {
-  const res = await fetch(`${API_URL}${path}`, {
-    method: 'POST',
-    credentials: 'include',
-    body: formData,
+// Uploads the file straight to Vercel Blob storage from the browser —
+// bypassing Vercel's hard 4.5MB request-body limit on serverless functions —
+// then hands the backend just the resulting blob URL to fetch and parse.
+async function uploadFileViaBlob(file, processPath) {
+  const blob = await blobUpload(file.name, file, {
+    access: 'public',
+    handleUploadUrl: '/api/blob/client-upload',
   });
-
-  const data = await res.json().catch(() => ({}));
-
-  if (!res.ok) {
-    throw new Error(data.message || `Request failed: ${res.status}`);
-  }
-
-  return data;
+  return apiFetch(processPath, {
+    method: 'POST',
+    body: JSON.stringify({ blobUrl: blob.url, filename: file.name }),
+  });
 }
 
 async function apiDownload(path, options = {}) {
@@ -104,11 +104,7 @@ export const getPricingKpi = () => apiFetch('/api/pricing/kpi');
 
 export const listPricingUploads = () => apiFetch('/api/pricing/uploads');
 
-export const uploadPricingMaster = (file) => {
-  const formData = new FormData();
-  formData.append('file', file);
-  return apiUpload('/api/pricing/uploads', formData);
-};
+export const uploadPricingMaster = (file) => uploadFileViaBlob(file, '/api/pricing/uploads');
 
 export const rollbackPricingUpload = (id) =>
   apiFetch(`/api/pricing/uploads/${id}/rollback`, { method: 'POST' });
@@ -130,11 +126,7 @@ export const exportMachine = (payload) =>
 
 export const listMachineUploads = () => apiFetch('/api/machine/uploads');
 
-export const uploadMachineMaster = (file) => {
-  const formData = new FormData();
-  formData.append('file', file);
-  return apiUpload('/api/machine/uploads', formData);
-};
+export const uploadMachineMaster = (file) => uploadFileViaBlob(file, '/api/machine/uploads');
 
 export const rollbackMachineUpload = (id) =>
   apiFetch(`/api/machine/uploads/${id}/rollback`, { method: 'POST' });
@@ -179,11 +171,7 @@ export const getGpsModels = () => apiFetch('/api/gps/models');
 
 export const listGpsUploads = () => apiFetch('/api/gps/uploads');
 
-export const uploadGpsTransactions = (file) => {
-  const formData = new FormData();
-  formData.append('file', file);
-  return apiUpload('/api/gps/uploads', formData);
-};
+export const uploadGpsTransactions = (file) => uploadFileViaBlob(file, '/api/gps/uploads');
 
 export const rollbackGpsUpload = (id) => apiFetch(`/api/gps/uploads/${id}/rollback`, { method: 'POST' });
 

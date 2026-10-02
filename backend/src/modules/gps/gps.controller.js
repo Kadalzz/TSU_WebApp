@@ -1,7 +1,6 @@
-const multer = require('multer');
+const { del } = require('@vercel/blob');
 const gpsService = require('./gps.service');
-
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const { fetchBlobFile } = require('../../utils/fetchBlobFile');
 
 function formatDateStamp(d) {
   const yyyy = d.getFullYear();
@@ -24,9 +23,11 @@ function getFiltersFromQuery(query) {
 }
 
 async function uploadTransactions(req, res, next) {
+  const { blobUrl, filename } = req.body || {};
+  if (!blobUrl || !filename) return res.status(400).json({ message: 'File wajib diupload' });
   try {
-    if (!req.file) return res.status(400).json({ message: 'File wajib diupload' });
-    const history = await gpsService.processUpload(req.file, req.user.sub);
+    const file = await fetchBlobFile(blobUrl, filename);
+    const history = await gpsService.processUpload(file, req.user.sub);
     res.json({
       uploadId: history.id,
       version: history.version,
@@ -37,6 +38,8 @@ async function uploadTransactions(req, res, next) {
     });
   } catch (err) {
     next(err);
+  } finally {
+    del(blobUrl).catch(() => {});
   }
 }
 
@@ -201,7 +204,6 @@ async function exportRanking(req, res, next) {
 }
 
 module.exports = {
-  upload,
   uploadTransactions,
   listUploads,
   rollback,

@@ -8,6 +8,7 @@ const machineRoutes = require('./modules/machine/machine.routes');
 const gpsRoutes = require('./modules/gps/gps.routes');
 const usersRoutes = require('./modules/users/users.routes');
 const settingsRoutes = require('./modules/settings/settings.routes');
+const blobRoutes = require('./modules/blob/blob.routes');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 const { loginLimiter } = require('./middleware/rateLimit');
 
@@ -26,6 +27,7 @@ app.use('/api/machine', machineRoutes);
 app.use('/api/gps', gpsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/blob', blobRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -21,7 +21,7 @@ router.get('/dashboard/ranking/export', requireFeatureEnabled('gps_export'), con
 router.get('/models', controller.getModels);
 
 // Admin only
-router.post('/uploads', requireRole('admin'), controller.upload.single('file'), controller.uploadTransactions);
+router.post('/uploads', requireRole('admin'), controller.uploadTransactions);
 router.get('/uploads', requireRole('admin'), controller.listUploads);
 router.post('/uploads/:id/rollback', requireRole('admin'), controller.rollback);
 router.delete('/uploads/:id', requireRole('admin'), controller.deleteUpload);

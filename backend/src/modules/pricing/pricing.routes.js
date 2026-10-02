@@ -18,7 +18,7 @@ router.post('/export', requireFeatureEnabled('pricing_export'), controller.expor
 router.get('/kpi', controller.getKpi);
 
 router.get('/uploads', requireRole('admin'), controller.listUploads);
-router.post('/uploads', requireRole('admin'), controller.upload.single('file'), controller.uploadMaster);
+router.post('/uploads', requireRole('admin'), controller.uploadMaster);
 router.post('/uploads/:id/rollback', requireRole('admin'), controller.rollback);
 router.delete('/uploads/:id', requireRole('admin'), controller.deleteUpload);
 router.get('/uploads/:id/error-log', requireRole('admin'), controller.downloadErrorLog);
