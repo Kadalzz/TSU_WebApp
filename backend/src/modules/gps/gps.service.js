@@ -94,6 +94,7 @@ async function processUpload(file, userId) {
         materialDescription: r.materialDescription,
         serialNo: r.serialNo,
         salesArea: r.salesArea,
+        industry: r.industry,
         revenue: r.revenue,
         cost: r.cost,
         gp: r.gp,
@@ -313,7 +314,7 @@ async function assignMaterialSubModel(materialNo, subModelId, userId) {
 
 // ---------- Dashboard ----------
 
-function buildFilterWhere({ year, month, salesName, customer, modelId, subModelId, salesArea }) {
+function buildFilterWhere({ year, month, salesName, customer, modelId, subModelId, salesArea, industry }) {
   const where = { uploadVersion: { isActiveVersion: true } };
 
   if (month) {
@@ -330,12 +331,13 @@ function buildFilterWhere({ year, month, salesName, customer, modelId, subModelI
   if (modelId) where.modelId = Number(modelId);
   if (subModelId) where.subModelId = Number(subModelId);
   if (salesArea) where.salesArea = salesArea;
+  if (industry) where.industry = industry;
 
   return where;
 }
 
 async function getFilterOptions() {
-  const [salesNames, customers, salesAreas, models, invoiceDates] = await Promise.all([
+  const [salesNames, customers, salesAreas, industries, models, invoiceDates] = await Promise.all([
     prisma.salesGpsTransaction.findMany({
       where: { uploadVersion: { isActiveVersion: true } },
       select: { salesName: true },
@@ -354,6 +356,12 @@ async function getFilterOptions() {
       distinct: ['salesArea'],
       orderBy: { salesArea: 'asc' },
     }),
+    prisma.salesGpsTransaction.findMany({
+      where: { uploadVersion: { isActiveVersion: true }, industry: { not: null } },
+      select: { industry: true },
+      distinct: ['industry'],
+      orderBy: { industry: 'asc' },
+    }),
     getModels(),
     prisma.salesGpsTransaction.findMany({
       where: { uploadVersion: { isActiveVersion: true } },
@@ -370,6 +378,7 @@ async function getFilterOptions() {
     salesNames: salesNames.map((s) => s.salesName),
     customers: customers.map((c) => c.customerName),
     salesAreas: salesAreas.map((s) => s.salesArea),
+    industries: industries.map((i) => i.industry),
     models,
     years,
   };
@@ -478,6 +487,7 @@ async function buildTransactionExportWorkbook(transactions) {
     { header: 'Material Description', key: 'materialDescription', width: 30 },
     { header: 'Serial No', key: 'serialNo', width: 16 },
     { header: 'Sales Area', key: 'salesArea', width: 14 },
+    { header: 'Industry', key: 'industry', width: 16 },
     { header: 'Model', key: 'model', width: 18 },
     { header: 'Sub Model', key: 'subModel', width: 18 },
     { header: 'Actual Revenue', key: 'revenue', width: 16 },
@@ -497,6 +507,7 @@ async function buildTransactionExportWorkbook(transactions) {
       materialDescription: t.materialDescription,
       serialNo: t.serialNo,
       salesArea: t.salesArea,
+      industry: t.industry,
       model: t.model?.name || '',
       subModel: t.subModel?.name || '',
       revenue: t.revenue,

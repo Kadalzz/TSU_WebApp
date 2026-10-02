@@ -231,6 +231,7 @@ model SalesGpsTransaction {
   materialDescription String?    @map("material_description")
   serialNo        String?         @map("serial_no")
   salesArea       String?         @map("sales_area")
+  industry        String?         @map("industry")
   revenue         Decimal?        @db.Decimal(16, 2)
   cost            Decimal?        @db.Decimal(16, 2)
   gp              Decimal?        @db.Decimal(16, 2)

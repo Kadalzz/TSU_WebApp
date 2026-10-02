@@ -77,6 +77,12 @@ export const logout = () => apiFetch('/api/auth/logout', { method: 'POST' });
 
 export const getMe = () => apiFetch('/api/auth/me');
 
+export const changeOwnPassword = (currentPassword, newPassword) =>
+  apiFetch('/api/auth/me/password', { method: 'PATCH', body: JSON.stringify({ currentPassword, newPassword }) });
+
+export const deleteOwnAccount = (password) =>
+  apiFetch('/api/auth/me', { method: 'DELETE', body: JSON.stringify({ password }) });
+
 // ---------- Pricing: search & export ----------
 
 export const searchPricing = (payload) =>

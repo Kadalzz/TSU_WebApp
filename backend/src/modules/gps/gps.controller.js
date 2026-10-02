@@ -19,6 +19,7 @@ function getFiltersFromQuery(query) {
     modelId: query.modelId || undefined,
     subModelId: query.subModelId || undefined,
     salesArea: query.salesArea || undefined,
+    industry: query.industry || undefined,
   };
 }
 

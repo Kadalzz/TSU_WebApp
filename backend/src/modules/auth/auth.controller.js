@@ -59,4 +59,31 @@ async function me(req, res, next) {
   }
 }
 
-module.exports = { login, logout, me };
+async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'currentPassword dan newPassword wajib diisi' });
+    }
+    await authService.changeOwnPassword(req.user.sub, currentPassword, newPassword);
+    res.json({ message: 'Password berhasil diubah' });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function deleteAccount(req, res, next) {
+  try {
+    const { password } = req.body;
+    if (!password) {
+      return res.status(400).json({ message: 'password wajib diisi untuk konfirmasi' });
+    }
+    await authService.deleteOwnAccount(req.user.sub, password);
+    res.clearCookie('token', cookieOptions);
+    res.json({ message: 'Akun berhasil dihapus' });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { login, logout, me, changePassword, deleteAccount };

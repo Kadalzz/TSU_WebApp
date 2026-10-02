@@ -28,6 +28,7 @@ const HEADER_MAP = {
   'gross profit%': 'actualGpPercent',
   'remarks bottom margin': 'marginRemark',
   'sales area': 'salesArea',
+  industry: 'industry',
 };
 
 // Real export files use a "Remarks bottom margin" text column (e.g. "a. Underperforming GP",
@@ -104,6 +105,7 @@ async function loadWorkbookRows(buffer, originalName) {
       materialDescription: getCell('materialDescription'),
       serialNo: getCell('serialNo'),
       salesArea: getCell('salesArea'),
+      industry: getCell('industry'),
       revenue: getCell('revenue'),
       cost: getCell('cost'),
       actualGpPercent: getCell('actualGpPercent'),
@@ -172,6 +174,7 @@ function validateRow(raw) {
   const materialDescription = cellText(raw.materialDescription);
   const serialNo = cellText(raw.serialNo);
   const salesArea = cellText(raw.salesArea);
+  const industry = cellText(raw.industry);
   const marginRemark = cellText(raw.marginRemark);
 
   let actualGpPercent = null;
@@ -210,6 +213,7 @@ function validateRow(raw) {
       materialDescription,
       serialNo,
       salesArea,
+      industry,
       revenue,
       cost,
       gp,

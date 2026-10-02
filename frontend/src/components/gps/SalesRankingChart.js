@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts';
 
 export const MARGIN_CATEGORY_COLORS = {
   not_achieved: '#E23E57',
@@ -50,7 +50,9 @@ export default function SalesRankingChart({ data }) {
             fill={MARGIN_CATEGORY_COLORS[key]}
             stroke="#f8fafc"
             strokeWidth={2}
-          />
+          >
+            <LabelList dataKey={key} position="inside" fill={MARGIN_CATEGORY_TEXT_COLOR[key]} fontSize={11} fontWeight={600} />
+          </Bar>
         ))}
       </BarChart>
     </ResponsiveContainer>

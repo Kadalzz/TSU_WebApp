@@ -72,9 +72,16 @@ export function ProfileMenu({ user, variant = 'greeting' }) {
               </div>
               <p className="mt-3 text-sm font-bold text-slate-900">{user.name}</p>
               <p className="mt-0.5 break-all text-xs text-slate-500">@{user.email}</p>
+              <Link
+                href="/account"
+                onClick={() => setOpen(false)}
+                className="mt-4 block rounded border border-slate-300 px-6 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Pengaturan Akun
+              </Link>
               <button
                 onClick={handleLogout}
-                className="mt-4 rounded px-6 py-1.5 text-xs font-semibold text-slate-900 hover:brightness-95"
+                className="mt-2 w-full rounded px-6 py-1.5 text-xs font-semibold text-slate-900 hover:brightness-95"
                 style={{ backgroundColor: '#face0b' }}
               >
                 Logout
